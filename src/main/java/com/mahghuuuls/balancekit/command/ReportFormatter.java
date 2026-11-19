@@ -51,6 +51,12 @@ public final class ReportFormatter {
         return lines;
     }
 
+    /** The damage line: the multipliers this entity's hits and injuries get, as the damage handler applies them. */
+    public static String damage(double dealt, double received, boolean blocklisted) {
+        String line = "Damage: dealt x" + number(dealt) + ", received x" + number(received);
+        return blocklisted ? line + " (its own multipliers skipped: damage blocklist)" : line;
+    }
+
     /** One line per applicable rule or blocklist entry, or a line saying there is none. */
     public static List<String> entries(List<String> applied) {
         List<String> lines = new ArrayList<>();

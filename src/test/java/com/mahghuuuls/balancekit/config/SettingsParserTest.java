@@ -61,6 +61,70 @@ class SettingsParserTest {
     }
 
     @Test
+    void damageMultipliersAcceptZeroAndRejectNegativeValues() {
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.PLAYER_DEALT, "0");
+        raw.put(SettingsParser.PLAYER_RECEIVED, "-1");
+        raw.put(SettingsParser.MOBS_DEALT, "2.5");
+        raw.put(SettingsParser.MOBS_RECEIVED, "abc");
+        SettingsParser.Result result = SettingsParser.parse(raw);
+        assertEquals(0.0D, result.settings().playerDealt());
+        assertEquals(1.0D, result.settings().playerReceived());
+        assertEquals(2.5D, result.settings().mobDealt());
+        assertEquals(1.0D, result.settings().mobReceived());
+        assertEquals(2, result.warnings().size());
+        assertEquals("mobs.damageReceived", result.warnings().get(0).location());
+        assertEquals("player.damageReceived", result.warnings().get(1).location());
+    }
+
+    @Test
+    void everyDamageSettingAcceptsZeroAndRejectsANegativeValue() {
+        String[] keys = {SettingsParser.PLAYER_DEALT, SettingsParser.PLAYER_RECEIVED, SettingsParser.MOBS_DEALT,
+                SettingsParser.MOBS_RECEIVED};
+        for (String key : keys) {
+            Map<String, String> raw = new HashMap<>();
+            raw.put(key, "0");
+            SettingsParser.Result zero = SettingsParser.parse(raw);
+            assertTrue(zero.warnings().isEmpty(), key);
+            raw.put(key, "-0.5");
+            SettingsParser.Result negative = SettingsParser.parse(raw);
+            assertEquals(1, negative.warnings().size(), key);
+            assertEquals(key, negative.warnings().get(0).location());
+        }
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.MOBS_DEALT, "0");
+        raw.put(SettingsParser.MOBS_RECEIVED, "0");
+        raw.put(SettingsParser.PLAYER_RECEIVED, "0");
+        BalanceSettings settings = SettingsParser.parse(raw).settings();
+        assertEquals(0.0D, settings.mobDealt());
+        assertEquals(0.0D, settings.mobReceived());
+        assertEquals(0.0D, settings.playerReceived());
+    }
+
+    @Test
+    void damageDefaultsAreNeutralAndTheLogIsOff() {
+        BalanceSettings settings = SettingsParser.parse(Collections.<String, String>emptyMap()).settings();
+        assertEquals(1.0D, settings.playerDealt());
+        assertEquals(1.0D, settings.playerReceived());
+        assertEquals(1.0D, settings.mobDealt());
+        assertEquals(1.0D, settings.mobReceived());
+        assertTrue(settings.excludedDamageTypes().isEmpty());
+        assertEquals(false, settings.logDamageTypes());
+    }
+
+    @Test
+    void theLogSwitchReadsTrueOrFalseAndWarnsOtherwise() {
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.LOG_DAMAGE_TYPES, " TRUE ");
+        assertEquals(true, SettingsParser.parse(raw).settings().logDamageTypes());
+        raw.put(SettingsParser.LOG_DAMAGE_TYPES, "yes");
+        SettingsParser.Result result = SettingsParser.parse(raw);
+        assertEquals(false, result.settings().logDamageTypes());
+        assertEquals(1, result.warnings().size());
+        assertEquals("diagnostics.logDamageTypes", result.warnings().get(0).location());
+    }
+
+    @Test
     void acceptsPositiveMultipliers() {
         assertEquals(0.5D, parseMobHealth("0.5").settings().mobHealth());
         assertEquals(2.0D, parseMobHealth(" 2 ").settings().mobHealth());

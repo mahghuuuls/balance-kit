@@ -1,5 +1,6 @@
 package com.mahghuuuls.balancekit.state;
 
+import com.mahghuuuls.balancekit.rules.MobProfile;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -34,6 +35,7 @@ public final class BalanceState {
     private double roll = Double.NaN;
     private float savedHealthFraction = NO_FRACTION;
     private double lastHealthBase = Double.NaN;
+    private MobProfile cachedProfile;
     private float healthAfterLastApply = Float.NaN;
 
     public boolean isBalanced() {
@@ -67,6 +69,18 @@ public final class BalanceState {
         float fraction = savedHealthFraction;
         savedHealthFraction = NO_FRACTION;
         return fraction;
+    }
+
+    /**
+     * The profile resolved for this mob, kept while it is loaded: its matches and roll do not change after the first
+     * balance and the config is read once. Reading saved data (a load, or an operator's edit) clears it.
+     */
+    public MobProfile cachedProfile() {
+        return cachedProfile;
+    }
+
+    public void setCachedProfile(MobProfile profile) {
+        this.cachedProfile = profile;
     }
 
     public double lastHealthBase() {
@@ -107,6 +121,7 @@ public final class BalanceState {
     }
 
     void read(NBTTagCompound tag) {
+        cachedProfile = null;
         balanced = tag.getBoolean(KEY_BALANCED);
         savedHealthFraction = tag.hasKey(KEY_HEALTH_FRACTION) ? tag.getFloat(KEY_HEALTH_FRACTION) : NO_FRACTION;
         roll = tag.hasKey(KEY_ROLL) ? tag.getDouble(KEY_ROLL) : Double.NaN;

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Uses the literal saved key names, so renaming a key (which would break existing saves) fails here. */
@@ -58,6 +59,17 @@ class BalanceStateTest {
         BalanceState loaded = new BalanceState();
         loaded.read(tag);
         assertEquals(0.1D, loaded.roll());
+    }
+
+    @Test
+    void readingSavedDataClearsTheCachedProfile() {
+        BalanceState state = new BalanceState();
+        state.markBalanced();
+        state.setCachedProfile(new com.mahghuuuls.balancekit.rules.RuleBook(
+                com.mahghuuuls.balancekit.config.BalanceSettings.NEUTRAL).profile("minecraft:zombie",
+                java.util.Collections.<String>emptySet(), Double.NaN));
+        state.read(state.write(1.0F));
+        assertNull(state.cachedProfile());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.mahghuuuls.balancekit.command;
 
 import com.mahghuuuls.balancekit.config.BalanceSettings;
+import com.mahghuuuls.balancekit.damage.DamageScaler;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
 import com.mahghuuuls.balancekit.rules.RuleBook;
 import net.minecraft.command.ICommandSender;
@@ -40,7 +41,8 @@ class InspectCommandTest {
         };
     }
 
-    private final InspectCommand command = new InspectCommand(new MobBalancer(new RuleBook(BalanceSettings.NEUTRAL)));
+    private static final MobBalancer MOBS = new MobBalancer(new RuleBook(BalanceSettings.NEUTRAL));
+    private final InspectCommand command = new InspectCommand(MOBS, new DamageScaler(BalanceSettings.NEUTRAL, MOBS));
 
     @Test
     void operatorsMayUseItAndOthersMayNot() {

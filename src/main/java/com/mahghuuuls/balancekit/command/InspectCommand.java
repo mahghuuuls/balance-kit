@@ -1,5 +1,6 @@
 package com.mahghuuuls.balancekit.command;
 
+import com.mahghuuuls.balancekit.damage.DamageScaler;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -33,9 +34,11 @@ public final class InspectCommand extends CommandBase {
     static final double REACH = 16.0D;
 
     private final MobBalancer mobs;
+    private final DamageScaler damage;
 
-    public InspectCommand(MobBalancer mobs) {
+    public InspectCommand(MobBalancer mobs, DamageScaler damage) {
         this.mobs = mobs;
+        this.damage = damage;
     }
 
     @Override
@@ -80,10 +83,16 @@ public final class InspectCommand extends CommandBase {
                 : key == null ? target.getClass().getName() : key.toString();
         List<String> sections = new ArrayList<>();
         if (MobBalancer.isMob(target)) {
-            sections.addAll(ReportFormatter.health(mobs.report((EntityLiving) target)));
-            sections.addAll(ReportFormatter.entries(mobs.appliedEntries((EntityLiving) target)));
+            EntityLiving mob = (EntityLiving) target;
+            sections.addAll(ReportFormatter.health(mobs.report(mob)));
+            sections.add(ReportFormatter.damage(damage.dealtBy(mob), damage.receivedBy(mob),
+                    mobs.profileOf(mob).damageBlocked()));
+            sections.addAll(ReportFormatter.entries(mobs.appliedEntries(mob)));
+        } else if (DamageScaler.isPlayer(target)) {
+            sections.add("Player: yes");
+            sections.add(ReportFormatter.damage(damage.dealtBy(target), damage.receivedBy(target), false));
         } else if (target instanceof EntityPlayer) {
-            sections.add("Player: no player adjustments are active.");
+            sections.add("Fake player: Balance Kit gives it no player or mob multipliers.");
         } else {
             sections.add("Not a mob: Balance Kit does not adjust this entity.");
         }

@@ -65,6 +65,28 @@ class RuleBookTest {
     }
 
     @Test
+    void mobDamageIsTheGlobalTimesEveryMatchingRuleAndTheBlocklistSkipsIt() {
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.MOBS_DEALT, "2");
+        raw.put(SettingsParser.MOBS_RECEIVED, "0.5");
+        Map<String, String[]> lists = new HashMap<>();
+        lists.put(SettingsParser.ENTITY_RULES, new String[] {"minecraft:zombie dealt=1.5 received=3",
+                "minecraft:zombie dealt=2"});
+        lists.put(SettingsParser.DAMAGE_BLOCKLIST, new String[] {"minecraft:wither"});
+        RuleBook book = new RuleBook(SettingsParser.parse(raw, lists).settings());
+        MobProfile zombie = book.profile("minecraft:zombie", NONE, NO_ROLL);
+        assertEquals(6.0D, zombie.dealt(), 1.0E-9);
+        assertEquals(1.5D, zombie.received(), 1.0E-9);
+        MobProfile cow = book.profile("minecraft:cow", NONE, NO_ROLL);
+        assertEquals(2.0D, cow.dealt(), 1.0E-9);
+        assertEquals(0.5D, cow.received(), 1.0E-9);
+        MobProfile wither = book.profile("minecraft:wither", NONE, NO_ROLL);
+        assertEquals(1.0D, wither.dealt(), 1.0E-9);
+        assertEquals(1.0D, wither.received(), 1.0E-9);
+        assertTrue(wither.damageBlocked());
+    }
+
+    @Test
     void variationMultipliesTheHealthFactor() {
         MobProfile zombie = varied("2", "1.0", "2.0", new String[0], new String[0])
                 .profile("minecraft:zombie", NONE, 0.5D);

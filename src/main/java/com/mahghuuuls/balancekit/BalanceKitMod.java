@@ -3,6 +3,7 @@ package com.mahghuuuls.balancekit;
 import com.mahghuuuls.balancekit.command.InspectCommand;
 import com.mahghuuuls.balancekit.config.BalanceSettings;
 import com.mahghuuuls.balancekit.config.ConfigFile;
+import com.mahghuuuls.balancekit.damage.DamageScaler;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
 import com.mahghuuuls.balancekit.rules.RuleBook;
 import com.mahghuuuls.balancekit.state.BalanceStates;
@@ -31,6 +32,7 @@ public class BalanceKitMod {
     private BalanceSettings settings = BalanceSettings.NEUTRAL;
     private RuleBook rules;
     private MobBalancer mobs;
+    private DamageScaler damage;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -43,6 +45,8 @@ public class BalanceKitMod {
         rules = new RuleBook(settings);
         mobs = new MobBalancer(rules);
         MinecraftForge.EVENT_BUS.register(mobs);
+        damage = new DamageScaler(settings, mobs);
+        MinecraftForge.EVENT_BUS.register(damage);
     }
 
     /** Entity IDs are known only once every mod has registered its entities. */
@@ -57,6 +61,6 @@ public class BalanceKitMod {
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new InspectCommand(mobs));
+        event.registerServerCommand(new InspectCommand(mobs, damage));
     }
 }

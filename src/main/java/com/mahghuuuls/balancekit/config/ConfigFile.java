@@ -28,6 +28,12 @@ public final class ConfigFile {
                 Property.Type.DOUBLE).getString();
     }
 
+    /** Reads a true/false setting as text, for the same reason as {@link #number}. */
+    private static String switchText(Configuration config, String category, String key, String comment) {
+        return config.get(category, key, "false", comment + " Default: false." + RESTART, Property.Type.BOOLEAN)
+                .getString();
+    }
+
     private static String[] list(Configuration config, String category, String key, String comment) {
         return config.get(category, key, new String[0], comment + RESTART).getStringList();
     }
@@ -45,6 +51,22 @@ public final class ConfigFile {
                         + " Example: 0.8. Must be above 0 and not above variationUpper."));
         raw.put(SettingsParser.VARIATION_UPPER, number(config, "mobs", "variationUpper", "1.0",
                 "Highest health variation multiplier (not reached unless equal to lower). Example: 1.2. Must be above 0."));
+        raw.put(SettingsParser.MOBS_DEALT, number(config, "mobs", "damageDealt", "1.0",
+                "Multiplier for damage every mob deals, before the victim's armor. Example: 1.5. Must be 0 or more."));
+        raw.put(SettingsParser.MOBS_RECEIVED, number(config, "mobs", "damageReceived", "1.0",
+                "Multiplier for damage every mob takes, before its armor. 0 means hits remove no health. Must be 0 or more."));
+
+        config.getCategory("player").setComment("Multipliers for players. Fake players (automation stand-ins) get none. 1.0 means no change.");
+        raw.put(SettingsParser.PLAYER_DEALT, number(config, "player", "damageDealt", "1.0",
+                "Multiplier for damage every player deals, before the victim's armor. Example: 2.0. Must be 0 or more."));
+        raw.put(SettingsParser.PLAYER_RECEIVED, number(config, "player", "damageReceived", "1.0",
+                "Multiplier for damage every player takes, before armor. The void and /kill are never scaled. Must be 0 or more."));
+
+        config.getCategory("diagnostics").setComment("Diagnostics for pack authors.");
+        raw.put(SettingsParser.LOG_DAMAGE_TYPES, switchText(config, "diagnostics", "logDamageTypes",
+                "true writes one server log line for every damage event on a player or mob: damage type, attacker,"
+                        + " victim, and the multipliers or the reason none applied. The log grows fast; use it to"
+                        + " find damage type names, then turn it off. true or false."));
 
         config.getCategory("rules").setComment("Entity rules, one per line: <entity id> [<NBT condition>] [health=<n>] [dealt=<n>] [received=<n>] [movement=<n>]."
                 + " Example: minecraft:zombie {IsBaby:1b} health=1.5. health and movement must be above 0; dealt and"
@@ -62,6 +84,14 @@ public final class ConfigFile {
                 "Mobs whose own damage dealt and received multipliers are skipped. Default: empty."));
         lists.put(SettingsParser.MOVEMENT_BLOCKLIST, list(config, "blocklists", "movement",
                 "Mobs that get no movement speed change. Default: empty."));
+        config.getCategory("damage").setComment("Damage scaling exceptions.");
+        lists.put(SettingsParser.EXCLUDED_DAMAGE_TYPES, list(config, "damage", "excludedDamageTypes",
+                "Damage type names that are never scaled, one per line, exact spelling. Vanilla names: inFire,"
+                        + " lightningBolt, onFire, lava, hotFloor, inWall, cramming, drown, starve, cactus, fall,"
+                        + " flyIntoWall, generic, magic, wither, anvil, fallingBlock, dragonBreath, fireworks, mob,"
+                        + " player, arrow, thrown, indirectMagic, thorns, explosion, explosion.player, fireball."
+                        + " outOfWorld (the void and /kill) is never scaled anyway. Modded damage has its own names;"
+                        + " diagnostics.logDamageTypes shows them. Default: empty."));
 
         if (config.hasChanged()) {
             config.save();

@@ -32,14 +32,16 @@ public final class RuleBook {
 
     private final double globalHealth;
     private final VariationRange variation;
-    // Global mob damage and movement multipliers arrive with their settings; until then they are neutral.
-    private final double globalDealt = 1.0D;
-    private final double globalReceived = 1.0D;
+    private final double globalDealt;
+    private final double globalReceived;
+    // The global mob movement multiplier arrives with its setting; until then it is neutral.
     private final double globalMovement = 1.0D;
     private final Map<String, List<Entry>> byEntity = new HashMap<>();
 
     public RuleBook(BalanceSettings settings) {
         this.globalHealth = settings.mobHealth();
+        this.globalDealt = settings.mobDealt();
+        this.globalReceived = settings.mobReceived();
         this.variation = new VariationRange(settings.variationLower(), settings.variationUpper());
         add(settings.entityRules(), Kind.RULE);
         add(settings.healthBlocklist(), Kind.HEALTH_BLOCK);
@@ -52,6 +54,21 @@ public final class RuleBook {
         for (EntrySpec spec : specs) {
             byEntity.computeIfAbsent(spec.entityId(), k -> new ArrayList<>()).add(new Entry(spec, kind));
         }
+    }
+
+    /** True when the global mob damage multipliers or any rule's dealt or received multiplier is not 1. */
+    public boolean changesMobDamage() {
+        if (globalDealt != 1.0D || globalReceived != 1.0D) {
+            return true;
+        }
+        for (List<Entry> entries : byEntity.values()) {
+            for (Entry entry : entries) {
+                if (entry.kind == Kind.RULE && (orOne(entry.spec.dealt()) != 1.0D || orOne(entry.spec.received()) != 1.0D)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** The entity IDs any entry names, for the startup check against the registry. */

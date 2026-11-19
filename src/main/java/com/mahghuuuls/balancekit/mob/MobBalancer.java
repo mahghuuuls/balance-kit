@@ -141,8 +141,31 @@ public final class MobBalancer {
                 : profile(mob, state).appliedEntries();
     }
 
+    /** True when some mob's damage dealt or received multiplier is not 1 under the current config. */
+    public boolean changesMobDamage() {
+        return rules.changesMobDamage();
+    }
+
+    /**
+     * What applies to this mob, for damage and inspection. Before its first balance (or without Balance Kit's record)
+     * it has no saved matches and no roll, so only entries without an NBT condition apply and there is no variation.
+     */
+    public MobProfile profileOf(EntityLiving mob) {
+        BalanceState state = BalanceStates.get(mob);
+        return state == null ? rules.profile(entityId(mob), Collections.<String>emptySet(), Double.NaN)
+                : profile(mob, state);
+    }
+
     private MobProfile profile(EntityLiving mob, BalanceState state) {
-        return rules.profile(entityId(mob), state.matches(), state.roll());
+        if (!state.isBalanced()) {
+            return rules.profile(entityId(mob), state.matches(), state.roll());
+        }
+        MobProfile profile = state.cachedProfile();
+        if (profile == null) {
+            profile = rules.profile(entityId(mob), state.matches(), state.roll());
+            state.setCachedProfile(profile);
+        }
+        return profile;
     }
 
     /** The mob's registered entity ID, or its class name when it has none. */

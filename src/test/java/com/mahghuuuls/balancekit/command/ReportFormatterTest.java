@@ -11,6 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ReportFormatterTest {
 
     @Test
+    void theDamageLineShowsBothMultipliersAndTheBlocklist() {
+        assertEquals("Damage: dealt x2, received x1.5", ReportFormatter.damage(2.0D, 1.5D, false));
+        assertEquals("Damage: dealt x1, received x1 (its own multipliers skipped: damage blocklist)",
+                ReportFormatter.damage(1.0D, 1.0D, true));
+    }
+
+    @Test
     void aMobWithoutARollReadsNotAvailable() {
         List<String> lines = ReportFormatter.health(
                 new HealthReport(20.0D, 20.0D, 1.0D, 20.0D, 20.0D, 1024.0D, Double.NaN, 1.0D, false));
