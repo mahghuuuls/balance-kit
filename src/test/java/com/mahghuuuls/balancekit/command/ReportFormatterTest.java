@@ -1,0 +1,61 @@
+package com.mahghuuuls.balancekit.command;
+
+import com.mahghuuuls.balancekit.mob.HealthReport;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class ReportFormatterTest {
+
+    @Test
+    void numbersDropTrailingZeros() {
+        assertEquals("40", ReportFormatter.number(40.0D));
+        assertEquals("0.345", ReportFormatter.number(0.345D));
+        assertEquals("1.5", ReportFormatter.number(1.5D));
+        assertEquals("n/a", ReportFormatter.number(Double.NaN));
+    }
+
+    @Test
+    void balancedMobShowsUnderlyingAdjustedAndResult() {
+        List<String> lines = ReportFormatter.health(new HealthReport(20.0D, 40.0D, 2.0D, 40.0D, 34.0D, 1024.0D));
+        assertEquals(Arrays.asList("Mob: yes",
+                "Max health: underlying base 20, adjusted base 40 (x2), result 40; health 34"), lines);
+    }
+
+    @Test
+    void cappedResultSaysSo() {
+        List<String> lines = ReportFormatter.health(new HealthReport(300.0D, 30000.0D, 100.0D, 1024.0D, 1024.0D, 1024.0D));
+        assertEquals("Max health: underlying base 300, adjusted base 30000 (x100), result 1024; health 1024", lines.get(1));
+        assertEquals("Cap: the max health cap of 1024 applies.", lines.get(2));
+    }
+
+    @Test
+    void pendingMobSaysSo() {
+        assertEquals(Arrays.asList("Mob: yes; first balance pending (it happens on the mob's first server tick)."),
+                ReportFormatter.health(HealthReport.pending()));
+    }
+
+    @Test
+    void anAdjustmentNotYetInEffectIsShownAsApplied() {
+        // A tamed wolf: base 20, Balance Kit's stale share of 8 still applied, config asks for x2.
+        List<String> lines = ReportFormatter.health(new HealthReport(20.0D, 28.0D, 2.0D, 28.0D, 20.0D, 1024.0D));
+        assertEquals("Max health: underlying base 20, adjusted base 28 (x1.4), result 28; health 20", lines.get(1));
+        assertEquals("Not yet in effect: the config asks for x2.", lines.get(2));
+    }
+
+    @Test
+    void headerWithoutANameHasNoQuotes() {
+        assertEquals("Balance Kit: minecraft:cow (entity 3)",
+                ReportFormatter.report("minecraft:cow", null, 3, Arrays.<String>asList()).get(0));
+    }
+
+    @Test
+    void headerNamesTheEntityAndIndentsSections() {
+        List<String> lines = ReportFormatter.report("minecraft:zombie", "bk_zombie", 7, Arrays.asList("Mob: yes"));
+        assertEquals("Balance Kit: minecraft:zombie \"bk_zombie\" (entity 7)", lines.get(0));
+        assertEquals("  Mob: yes", lines.get(1));
+    }
+}

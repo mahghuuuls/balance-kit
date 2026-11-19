@@ -58,6 +58,27 @@ public final class Contribution {
         return instance == null ? Double.NaN : instance.getBaseValue();
     }
 
+    /**
+     * The base max health is computed from right now: the underlying base plus Balance Kit's applied share. It can
+     * differ from underlying base x configured factor until the next recheck after another mod changed the base.
+     * NaN when the entity has no max health attribute.
+     */
+    public static double appliedMaxHealthBase(EntityLivingBase entity) {
+        IAttributeInstance instance = entity.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
+        return instance == null ? Double.NaN : appliedBase(instance, MAX_HEALTH_ID);
+    }
+
+    static double appliedBase(IAttributeInstance instance, UUID id) {
+        AttributeModifier modifier = instance.getModifier(id);
+        return instance.getBaseValue() + (modifier == null ? 0.0D : modifier.getAmount());
+    }
+
+    /** The highest value the attribute allows (the game's or another mod's cap), or NaN when the entity lacks it. */
+    public static double cap(EntityLivingBase entity, IAttribute attribute) {
+        IAttributeInstance instance = entity.getEntityAttribute(attribute);
+        return instance == null ? Double.NaN : instance.getAttribute().clampValue(Double.MAX_VALUE);
+    }
+
     /** Returns false when the entity has no max health attribute. A dying entity is left alone. */
     private static boolean apply(EntityLivingBase entity, double factor, float fixedFraction,
                                  float healthAfterLastApply) {

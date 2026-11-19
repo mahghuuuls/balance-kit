@@ -91,6 +91,20 @@ class ContributionTest {
     }
 
     @Test
+    void appliedBaseIsWhatTheGameUsesEvenAfterTheBaseChangedUnderIt() {
+        IAttributeInstance instance = maxHealth(8.0D);
+        apply(instance, 2.0D);
+        assertEquals(16.0D, Contribution.appliedBase(instance, Contribution.MAX_HEALTH_ID), 1.0E-9);
+        // Vanilla taming raises the base to 20; Balance Kit's +8 is still on until the next recheck.
+        instance.setBaseValue(20.0D);
+        assertEquals(28.0D, Contribution.appliedBase(instance, Contribution.MAX_HEALTH_ID), 1.0E-9);
+        assertEquals(28.0D, instance.getAttributeValue(), 1.0E-9);
+        apply(instance, 2.0D);
+        assertEquals(40.0D, Contribution.appliedBase(instance, Contribution.MAX_HEALTH_ID), 1.0E-9);
+        assertEquals(20.0D, Contribution.appliedBase(maxHealth(20.0D), Contribution.MAX_HEALTH_ID), 1.0E-9);
+    }
+
+    @Test
     void keepsTheFractionOfTheMaxHealthTheEntityHad() {
         assertEquals(0.5F, Contribution.fractionToKeep(10.0F, 20.0F, 20.0F, 10.0F), 1.0E-6F);
         assertEquals(0.75F, Contribution.fractionToKeep(30.0F, 40.0F, 20.0F, 30.0F), 1.0E-6F);

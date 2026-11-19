@@ -108,6 +108,17 @@ public final class MobBalancer {
         return Contribution.base(mob, SharedMonsterAttributes.MAX_HEALTH) != state.lastHealthBase();
     }
 
+    /** What Balance Kit decided for one mob, from the same values this class applies. */
+    public HealthReport report(EntityLiving mob) {
+        BalanceState state = BalanceStates.get(mob);
+        if (state == null || !state.isBalanced()) {
+            return HealthReport.pending();
+        }
+        return new HealthReport(Contribution.base(mob, SharedMonsterAttributes.MAX_HEALTH),
+                Contribution.appliedMaxHealthBase(mob), healthFactor(), mob.getMaxHealth(), mob.getHealth(),
+                Contribution.cap(mob, SharedMonsterAttributes.MAX_HEALTH));
+    }
+
     double healthFactor() {
         return settings.mobHealth();
     }
