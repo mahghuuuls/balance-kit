@@ -33,6 +33,12 @@ class ReportFormatterTest {
     }
 
     @Test
+    void theAttackSpeedLineShowsTheMultiplierAndValue() {
+        assertEquals("Attack speed: x2; value 3.2; recharge 6.25 ticks", ReportFormatter.attackSpeed(2.0D, 3.2D, 6.25D));
+        assertEquals("Attack speed: x1", ReportFormatter.attackSpeed(1.0D, Double.NaN, Double.NaN));
+    }
+
+    @Test
     void theDamageLineShowsBothMultipliersAndTheBlocklist() {
         assertEquals("Damage: dealt x2, received x1.5", ReportFormatter.damage(2.0D, 1.5D, false));
         assertEquals("Damage: dealt x1, received x1 (its own multipliers skipped: damage blocklist)",

@@ -75,6 +75,18 @@ public final class ReportFormatter {
         return Double.isNaN(speed) ? line : line + "; speed " + number(speed);
     }
 
+    /**
+     * The attack speed line: the multiplier on the final attack speed, the value it gives with the held item, and the
+     * game's own recharge time for one swing at that value.
+     */
+    public static String attackSpeed(double multiplier, double value, double rechargeTicks) {
+        String line = "Attack speed: x" + number(multiplier);
+        if (!Double.isNaN(value)) {
+            line += "; value " + number(value);
+        }
+        return Double.isNaN(rechargeTicks) ? line : line + "; recharge " + number(rechargeTicks) + " ticks";
+    }
+
     /** The damage line: the multipliers this entity's hits and injuries get, as the damage handler applies them. */
     public static String damage(double dealt, double received, boolean blocklisted) {
         String line = "Damage: dealt x" + number(dealt) + ", received x" + number(received);

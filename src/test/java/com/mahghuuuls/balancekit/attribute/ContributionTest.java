@@ -77,6 +77,29 @@ class ContributionTest {
     }
 
     @Test
+    void attackSpeedMultipliesTheFinalValueAfterTheWeapon() {
+        AttributeMap map = new AttributeMap();
+        IAttributeInstance instance = map.registerAttribute(SharedMonsterAttributes.ATTACK_SPEED);
+        instance.setBaseValue(4.0D);
+        instance.applyModifier(new AttributeModifier(OTHER_MOD, "diamond sword", -2.4D, 0));
+        assertEquals(1.6D, instance.getAttributeValue(), 1.0E-9);
+        assertTrue(Contribution.setTotalFactor(instance, Contribution.ATTACK_SPEED_ID, Contribution.ATTACK_SPEED_NAME, 2.0D));
+        assertEquals(3.2D, instance.getAttributeValue(), 1.0E-9);
+        // Another mod's multiply-base +50 percent: a multiply-total share doubles 1.6 x 1.5 = 2.4 to 4.8; a
+        // multiply-base share would add to that +50 percent instead and give 1.6 x 2.5 = 4.0.
+        UUID haste = UUID.fromString("22222222-3333-4444-5555-666666666666");
+        instance.applyModifier(new AttributeModifier(haste, "haste", 0.5D, 1));
+        assertEquals(4.8D, instance.getAttributeValue(), 1.0E-9);
+        instance.removeModifier(haste);
+        assertFalse(Contribution.setTotalFactor(instance, Contribution.ATTACK_SPEED_ID, Contribution.ATTACK_SPEED_NAME, 2.0D),
+                "reapplying does not stack");
+        assertEquals(3.2D, instance.getAttributeValue(), 1.0E-9);
+        assertFalse(instance.getModifier(Contribution.ATTACK_SPEED_ID).isSaved());
+        assertTrue(Contribution.setTotalFactor(instance, Contribution.ATTACK_SPEED_ID, Contribution.ATTACK_SPEED_NAME, 1.0D));
+        assertEquals(1.6D, instance.getAttributeValue(), 1.0E-9);
+    }
+
+    @Test
     void otherModsMultiplyBaseModifierSeesTheAdjustedBase() {
         IAttributeInstance instance = maxHealth(20.0D);
         instance.applyModifier(new AttributeModifier(OTHER_MOD, "other", 0.5D, 1));

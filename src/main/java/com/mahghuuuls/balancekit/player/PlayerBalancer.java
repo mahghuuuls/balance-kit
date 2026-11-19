@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * Owns the player lifecycle: every path that makes or reloads a player entity sets the player's max health from the
  * configured base (or removes Balance Kit's share when the switch is off) through one private {@code apply}, and the
- * player's movement share through {@code applyMovement}.
+ * player's movement and attack speed shares through {@code applyMovementAndAttackSpeed}.
  *
  * <ul>
  *   <li>Login: the game loads health clamped to the max health without Balance Kit's share, so the fraction saved
@@ -68,7 +68,7 @@ public final class PlayerBalancer {
         if (state != null) {
             float saved = state.takeSavedHealthFraction();
             apply(event.player, state, factor -> Contribution.restoreMaxHealth(event.player, factor, saved));
-            applyMovement(event.player);
+            applyMovementAndAttackSpeed(event.player);
         }
     }
 
@@ -93,7 +93,7 @@ public final class PlayerBalancer {
             apply(event.player, state, factor -> health > 0.0F
                     ? Contribution.applyMaxHealthWithHealth(event.player, factor, health)
                     : Contribution.applyMaxHealthKeepingPercentage(event.player, factor));
-            applyMovement(event.player);
+            applyMovementAndAttackSpeed(event.player);
         }
     }
 
@@ -102,7 +102,7 @@ public final class PlayerBalancer {
         BalanceState state = serverState(event.player);
         if (state != null) {
             apply(event.player, state, factor -> Contribution.applyMaxHealthKeepingPercentage(event.player, factor));
-            applyMovement(event.player);
+            applyMovementAndAttackSpeed(event.player);
         }
     }
 
@@ -116,7 +116,7 @@ public final class PlayerBalancer {
         if (state == null) {
             return;
         }
-        applyMovement(player);
+        applyMovementAndAttackSpeed(player);
         if (Contribution.base(player, SharedMonsterAttributes.MAX_HEALTH) != state.lastHealthBase()) {
             apply(player, state, factor -> Contribution.applyMaxHealth(player, factor, state.healthAfterLastApply()));
         } else {
@@ -132,8 +132,11 @@ public final class PlayerBalancer {
                 player.getMaxHealth(), player.getHealth(), Contribution.cap(player, SharedMonsterAttributes.MAX_HEALTH));
     }
 
-    /** Sets the player's movement share; separate from the health path, so one cannot stop the other. */
-    private void applyMovement(EntityPlayer player) {
+    /**
+     * Sets the player's movement and attack speed shares, each on its own, and apart from the health path, so a
+     * failure in one cannot stop another. An unchanged share costs nothing.
+     */
+    private void applyMovementAndAttackSpeed(EntityPlayer player) {
         try {
             if (!Contribution.applyMovement(player, settings.playerMovement())) {
                 reportOnce(player, "has no movement speed attribute; left unchanged", null);
@@ -141,11 +144,23 @@ public final class PlayerBalancer {
         } catch (RuntimeException e) {
             reportOnce(player, "could not get its movement speed; left unchanged", e);
         }
+        try {
+            if (!Contribution.applyAttackSpeed(player, settings.playerAttackSpeed())) {
+                reportOnce(player, "has no attack speed attribute; left unchanged", null);
+            }
+        } catch (RuntimeException e) {
+            reportOnce(player, "could not get its attack speed; left unchanged", e);
+        }
     }
 
     /** The player's movement speed multiplier, as the report shows it. */
     public double movement() {
         return settings.playerMovement();
+    }
+
+    /** The player's attack speed multiplier, as the report shows it. */
+    public double attackSpeed() {
+        return settings.playerAttackSpeed();
     }
 
     /** The max health factor that makes the base equal the configured value; 1 (no share) while the switch is off. */
@@ -166,8 +181,9 @@ public final class PlayerBalancer {
     }
 
     /**
-     * The one path every hook takes: computes the factor from the current config, lets {@code step} set it (each
-     * hook chooses how health is kept), and remembers the base and health it left for the next recheck.
+     * Sets max health: computes the factor from the current config, lets {@code step} set it (each hook chooses how
+     * health is kept), and remembers the base and health it left for the next recheck. Movement and attack speed
+     * have their own call in each hook.
      */
     private void apply(EntityPlayer player, BalanceState state, Step step) {
         try {

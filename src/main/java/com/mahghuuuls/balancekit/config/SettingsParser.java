@@ -22,6 +22,7 @@ public final class SettingsParser {
     public static final String PLAYER_RECEIVED = "player.damageReceived";
     public static final String MOBS_MOVEMENT = "mobs.movementSpeed";
     public static final String PLAYER_MOVEMENT = "player.movementSpeed";
+    public static final String PLAYER_ATTACK_SPEED = "player.attackSpeed";
     public static final String PLAYER_BASE_HEALTH_ENABLED = "player.baseHealthEnabled";
     public static final String PLAYER_BASE_HEALTH = "player.baseHealth";
     public static final String EXCLUDED_DAMAGE_TYPES = "damage.excludedDamageTypes";
@@ -61,6 +62,7 @@ public final class SettingsParser {
         b.playerReceived = nonNegativeMultiplier(PLAYER_RECEIVED, raw.get(PLAYER_RECEIVED), warnings);
         b.mobMovement = positiveMultiplier(MOBS_MOVEMENT, raw.get(MOBS_MOVEMENT), warnings);
         b.playerMovement = positiveMultiplier(PLAYER_MOVEMENT, raw.get(PLAYER_MOVEMENT), warnings);
+        b.playerAttackSpeed = positiveMultiplier(PLAYER_ATTACK_SPEED, raw.get(PLAYER_ATTACK_SPEED), warnings);
         b.playerBaseHealthEnabled = switchSetting(PLAYER_BASE_HEALTH_ENABLED, raw.get(PLAYER_BASE_HEALTH_ENABLED), warnings);
         b.playerBaseHealth = positiveValue(PLAYER_BASE_HEALTH, raw.get(PLAYER_BASE_HEALTH), 20.0D, warnings);
         b.excludedDamageTypes = names(lines(lists, EXCLUDED_DAMAGE_TYPES));

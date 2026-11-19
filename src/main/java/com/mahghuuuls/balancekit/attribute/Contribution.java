@@ -11,10 +11,12 @@ import java.util.UUID;
 /**
  * Applies Balance Kit's share of an attribute, and owns how health is kept when max health changes.
  *
- * <p>A factor is applied as one unsaved add-operation modifier of {@code base x (factor - 1)}. Add modifiers are
- * summed before multiply modifiers, so the result equals a base of {@code base x factor} while other mods' modifiers
- * stack on it as usual. The modifier is never saved, so the entity's saved base stays the underlying base and
- * removing Balance Kit leaves nothing behind; callers reapply it whenever the entity loads.
+ * <p>Each share is one unsaved modifier with Balance Kit's own id for that attribute. Max health and movement use an
+ * add-operation modifier of {@code base x (factor - 1)}: add modifiers are summed before multiply modifiers, so the
+ * result equals a base of {@code base x factor} while other mods' modifiers stack on it as usual. Attack speed uses a
+ * multiply-total modifier of {@code factor - 1}, which multiplies the final value after every other modifier. A
+ * modifier is never saved, so the entity's saved base stays the underlying base and removing Balance Kit leaves
+ * nothing behind; callers reapply it whenever the entity loads.
  */
 public final class Contribution {
 
@@ -25,6 +27,9 @@ public final class Contribution {
     static final String MAX_HEALTH_NAME = "balancekit.maxHealth";
     static final UUID MOVEMENT_ID = UUID.fromString("5c1e3f2a-7b6d-4e9a-9c0f-2d8b1a4e6f73");
     static final String MOVEMENT_NAME = "balancekit.movementSpeed";
+    static final UUID ATTACK_SPEED_ID = UUID.fromString("9d4b7e21-3c8a-4f56-b1e0-6a2f8c5d9e14");
+    static final String ATTACK_SPEED_NAME = "balancekit.attackSpeed";
+    static final int OPERATION_MULTIPLY_TOTAL = 2;
     static final int OPERATION_ADD = 0;
 
     private static final float SAME_HEALTH = 1.0E-3F;
@@ -77,6 +82,27 @@ public final class Contribution {
         }
         setFactor(instance, MOVEMENT_ID, MOVEMENT_NAME, factor);
         return true;
+    }
+
+    /**
+     * Multiplies the final attack speed, after the weapon and every other modifier, by {@code factor}: one unsaved
+     * multiply-total modifier of {@code factor - 1}. Returns false when the entity has no attack speed attribute.
+     */
+    public static boolean applyAttackSpeed(EntityLivingBase entity, double factor) {
+        IAttributeInstance instance = entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_SPEED);
+        if (instance == null) {
+            return false;
+        }
+        setTotalFactor(instance, ATTACK_SPEED_ID, ATTACK_SPEED_NAME, factor);
+        return true;
+    }
+
+    /**
+     * Puts a multiply-total modifier of {@code factor - 1} on the instance, replacing an older one; a factor of 1
+     * removes it. Returns true when the attribute changed.
+     */
+    static boolean setTotalFactor(IAttributeInstance instance, UUID id, String name, double factor) {
+        return setShare(instance, id, name, factor - 1.0D, OPERATION_MULTIPLY_TOTAL, factor == 1.0D);
     }
 
     /** The attribute's current value, or NaN when the entity lacks it. */
@@ -191,16 +217,25 @@ public final class Contribution {
      * Returns true when the attribute changed.
      */
     static boolean setFactor(IAttributeInstance instance, UUID id, String name, double factor) {
-        double amount = instance.getBaseValue() * (factor - 1.0D);
+        return setShare(instance, id, name, instance.getBaseValue() * (factor - 1.0D), OPERATION_ADD, factor == 1.0D);
+    }
+
+    /**
+     * The one place a share is written: replaces Balance Kit's modifier with {@code id} by an unsaved one of
+     * {@code amount} and {@code operation}, keeps it when it is already that, and removes it when {@code remove}.
+     * Returns true when the attribute changed.
+     */
+    private static boolean setShare(IAttributeInstance instance, UUID id, String name, double amount, int operation,
+                                    boolean remove) {
         AttributeModifier existing = instance.getModifier(id);
         if (existing != null) {
-            if (existing.getOperation() == OPERATION_ADD && existing.getAmount() == amount && factor != 1.0D) {
+            if (!remove && existing.getOperation() == operation && existing.getAmount() == amount) {
                 return false;
             }
             instance.removeModifier(existing);
         }
-        if (factor != 1.0D) {
-            instance.applyModifier(new AttributeModifier(id, name, amount, OPERATION_ADD).setSaved(false));
+        if (!remove) {
+            instance.applyModifier(new AttributeModifier(id, name, amount, operation).setSaved(false));
             return true;
         }
         return existing != null;

@@ -23,6 +23,7 @@ public final class BalanceSettings {
     private final double playerReceived;
     private final double mobMovement;
     private final double playerMovement;
+    private final double playerAttackSpeed;
     private final boolean playerBaseHealthEnabled;
     private final double playerBaseHealth;
     private final Set<String> excludedDamageTypes;
@@ -43,6 +44,7 @@ public final class BalanceSettings {
         this.playerReceived = b.playerReceived;
         this.mobMovement = b.mobMovement;
         this.playerMovement = b.playerMovement;
+        this.playerAttackSpeed = b.playerAttackSpeed;
         this.playerBaseHealthEnabled = b.playerBaseHealthEnabled;
         this.playerBaseHealth = b.playerBaseHealth;
         this.excludedDamageTypes = Collections.unmodifiableSet(new LinkedHashSet<>(b.excludedDamageTypes));
@@ -98,6 +100,11 @@ public final class BalanceSettings {
         return playerMovement;
     }
 
+    /** Multiplier for every player's final attack speed; above 0. */
+    public double playerAttackSpeed() {
+        return playerAttackSpeed;
+    }
+
     /** Whether every player's max health is computed from {@link #playerBaseHealth()} as its base. */
     public boolean playerBaseHealthEnabled() {
         return playerBaseHealthEnabled;
@@ -149,6 +156,7 @@ public final class BalanceSettings {
         double playerReceived = 1.0D;
         double mobMovement = 1.0D;
         double playerMovement = 1.0D;
+        double playerAttackSpeed = 1.0D;
         boolean playerBaseHealthEnabled;
         double playerBaseHealth = 20.0D;
         Set<String> excludedDamageTypes = Collections.emptySet();

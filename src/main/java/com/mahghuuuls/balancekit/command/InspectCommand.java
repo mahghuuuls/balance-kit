@@ -101,6 +101,9 @@ public final class InspectCommand extends CommandBase {
             sections.addAll(ReportFormatter.playerHealth(players.report((EntityPlayer) target)));
             sections.add(ReportFormatter.movement(players.movement(), false,
                     Contribution.value((EntityPlayer) target, SharedMonsterAttributes.MOVEMENT_SPEED)));
+            sections.add(ReportFormatter.attackSpeed(players.attackSpeed(),
+                    Contribution.value((EntityPlayer) target, SharedMonsterAttributes.ATTACK_SPEED),
+                    ((EntityPlayer) target).getCooldownPeriod()));
             sections.add(ReportFormatter.damage(damage.dealtBy(target), damage.receivedBy(target), false));
         } else if (target instanceof EntityPlayer) {
             sections.add("Fake player: Balance Kit gives it no player or mob multipliers.");
