@@ -125,6 +125,27 @@ class SettingsParserTest {
     }
 
     @Test
+    void playerBaseHealthDefaultsOffAt20AndRejectsInvalidValues() {
+        BalanceSettings neutral = SettingsParser.parse(Collections.<String, String>emptyMap()).settings();
+        assertEquals(false, neutral.playerBaseHealthEnabled());
+        assertEquals(20.0D, neutral.playerBaseHealth());
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.PLAYER_BASE_HEALTH_ENABLED, "true");
+        raw.put(SettingsParser.PLAYER_BASE_HEALTH, "10");
+        SettingsParser.Result ok = SettingsParser.parse(raw);
+        assertTrue(ok.warnings().isEmpty());
+        assertEquals(true, ok.settings().playerBaseHealthEnabled());
+        assertEquals(10.0D, ok.settings().playerBaseHealth());
+        for (String bad : new String[] {"0", "-5", "NaN", "abc"}) {
+            raw.put(SettingsParser.PLAYER_BASE_HEALTH, bad);
+            SettingsParser.Result result = SettingsParser.parse(raw);
+            assertEquals(20.0D, result.settings().playerBaseHealth(), bad);
+            assertEquals(1, result.warnings().size(), bad);
+            assertEquals("player.baseHealth", result.warnings().get(0).location(), bad);
+        }
+    }
+
+    @Test
     void acceptsPositiveMultipliers() {
         assertEquals(0.5D, parseMobHealth("0.5").settings().mobHealth());
         assertEquals(2.0D, parseMobHealth(" 2 ").settings().mobHealth());

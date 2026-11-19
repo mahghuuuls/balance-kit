@@ -35,7 +35,25 @@ public final class Contribution {
      * {@code healthAfterLastApply} is the health at the previous check of this entity, or NaN.
      */
     public static boolean applyMaxHealth(EntityLivingBase entity, double factor, float healthAfterLastApply) {
-        return apply(entity, factor, NO_FRACTION, healthAfterLastApply);
+        return apply(entity, factor, NO_FRACTION, healthAfterLastApply, Float.NaN);
+    }
+
+    /**
+     * Sets the max health factor, then gives the entity back {@code health} (at most its new max health). For an
+     * entity the game made with a health value that was clamped before Balance Kit's share existed, such as a player
+     * after the End exit.
+     */
+    public static boolean applyMaxHealthWithHealth(EntityLivingBase entity, double factor, float health) {
+        return apply(entity, factor, NO_FRACTION, Float.NaN, health);
+    }
+
+    /**
+     * Sets the max health factor and keeps the plain health percentage, without the "set to full" exception of
+     * {@link #fractionToKeep}: for a change that cannot have been another mod setting a new base, such as a
+     * dimension change.
+     */
+    public static boolean applyMaxHealthKeepingPercentage(EntityLivingBase entity, double factor) {
+        return apply(entity, factor, NO_FRACTION, Float.NaN, Float.NaN);
     }
 
     /**
@@ -43,7 +61,7 @@ public final class Contribution {
      * without Balance Kit's modifier, so the fraction saved with the entity is restored instead.
      */
     public static boolean restoreMaxHealth(EntityLivingBase entity, double factor, float savedFraction) {
-        return apply(entity, factor, savedFraction, Float.NaN);
+        return apply(entity, factor, savedFraction, Float.NaN, Float.NaN);
     }
 
     /** The fraction to save with the entity, matching the health that is saved at the same moment. */
@@ -79,9 +97,12 @@ public final class Contribution {
         return instance == null ? Double.NaN : instance.getAttribute().clampValue(Double.MAX_VALUE);
     }
 
-    /** Returns false when the entity has no max health attribute. A dying entity is left alone. */
+    /**
+     * Returns false when the entity has no max health attribute. A dying entity is left alone. Max health is always
+     * set before health. {@code exactHealth} (NaN for none) wins over any fraction.
+     */
     private static boolean apply(EntityLivingBase entity, double factor, float fixedFraction,
-                                 float healthAfterLastApply) {
+                                 float healthAfterLastApply, float exactHealth) {
         IAttributeInstance instance = entity.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
         if (instance == null) {
             return false;
@@ -101,10 +122,7 @@ public final class Contribution {
                 : fractionToKeep(health, maxWithOldShare, maxWithoutShare, healthAfterLastApply);
         setFactor(instance, MAX_HEALTH_ID, MAX_HEALTH_NAME, factor);
         float max = entity.getMaxHealth();
-        float target = fraction * max;
-        if (target <= 0.0F || target > max) {
-            target = Math.min(health, max);
-        }
+        float target = targetHealth(exactHealth, fraction, max, health);
         if (Math.abs(target - health) > 1.0E-4F) {
             entity.setHealth(target);
         }
@@ -132,6 +150,15 @@ public final class Contribution {
             return 1.0F;
         }
         return Math.max(0.0F, Math.min(1.0F, health / maxWithOldShare));
+    }
+
+    /**
+     * The health to set once max health is {@code max}: {@code exactHealth} when given (at most {@code max}),
+     * otherwise {@code fraction} of {@code max}; an unusable result keeps the current health within the new max.
+     */
+    static float targetHealth(float exactHealth, float fraction, float max, float health) {
+        float target = exactHealth > 0.0F ? Math.min(exactHealth, max) : fraction * max;
+        return target <= 0.0F || target > max ? Math.min(health, max) : target;
     }
 
     static boolean isUsableFraction(float fraction) {

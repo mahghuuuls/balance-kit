@@ -2,6 +2,7 @@ package com.mahghuuuls.balancekit.command;
 
 import com.mahghuuuls.balancekit.damage.DamageScaler;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
+import com.mahghuuuls.balancekit.player.PlayerBalancer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -34,10 +35,12 @@ public final class InspectCommand extends CommandBase {
     static final double REACH = 16.0D;
 
     private final MobBalancer mobs;
+    private final PlayerBalancer players;
     private final DamageScaler damage;
 
-    public InspectCommand(MobBalancer mobs, DamageScaler damage) {
+    public InspectCommand(MobBalancer mobs, PlayerBalancer players, DamageScaler damage) {
         this.mobs = mobs;
+        this.players = players;
         this.damage = damage;
     }
 
@@ -88,8 +91,9 @@ public final class InspectCommand extends CommandBase {
             sections.add(ReportFormatter.damage(damage.dealtBy(mob), damage.receivedBy(mob),
                     mobs.profileOf(mob).damageBlocked()));
             sections.addAll(ReportFormatter.entries(mobs.appliedEntries(mob)));
-        } else if (DamageScaler.isPlayer(target)) {
+        } else if (PlayerBalancer.isPlayer(target)) {
             sections.add("Player: yes");
+            sections.addAll(ReportFormatter.playerHealth(players.report((EntityPlayer) target)));
             sections.add(ReportFormatter.damage(damage.dealtBy(target), damage.receivedBy(target), false));
         } else if (target instanceof EntityPlayer) {
             sections.add("Fake player: Balance Kit gives it no player or mob multipliers.");

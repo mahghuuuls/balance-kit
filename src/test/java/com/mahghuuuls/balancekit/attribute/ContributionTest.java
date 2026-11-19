@@ -45,6 +45,26 @@ class ContributionTest {
     }
 
     @Test
+    void aPlayerBaseOf30WithAnotherModsPlusFourGives34() {
+        IAttributeInstance instance = maxHealth(20.0D);
+        assertTrue(apply(instance, 30.0D / 20.0D));
+        assertEquals(30.0D, instance.getAttributeValue(), 1.0E-9);
+        instance.applyModifier(new AttributeModifier(OTHER_MOD, "other", 4.0D, 0));
+        assertEquals(34.0D, instance.getAttributeValue(), 1.0E-9);
+        assertTrue(apply(instance, 1.0D));
+        assertEquals(24.0D, instance.getAttributeValue(), 1.0E-9, "switch off: the game's base again");
+    }
+
+    @Test
+    void anExactHealthWinsOverTheFractionAndStaysWithinTheNewMax() {
+        assertEquals(28.0F, Contribution.targetHealth(28.0F, 0.5F, 30.0F, 20.0F), 1.0E-6F);
+        assertEquals(30.0F, Contribution.targetHealth(40.0F, 0.5F, 30.0F, 20.0F), 1.0E-6F);
+        assertEquals(15.0F, Contribution.targetHealth(Float.NaN, 0.5F, 30.0F, 20.0F), 1.0E-6F);
+        assertEquals(25.0F, Contribution.targetHealth(Float.NaN, 0.0F, 30.0F, 25.0F), 1.0E-6F);
+        assertEquals(20.0F, Contribution.targetHealth(Float.NaN, 0.0F, 20.0F, 25.0F), 1.0E-6F);
+    }
+
+    @Test
     void otherModsMultiplyBaseModifierSeesTheAdjustedBase() {
         IAttributeInstance instance = maxHealth(20.0D);
         instance.applyModifier(new AttributeModifier(OTHER_MOD, "other", 0.5D, 1));

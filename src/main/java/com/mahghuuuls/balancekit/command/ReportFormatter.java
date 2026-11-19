@@ -1,6 +1,7 @@
 package com.mahghuuuls.balancekit.command;
 
 import com.mahghuuuls.balancekit.mob.HealthReport;
+import com.mahghuuuls.balancekit.player.PlayerHealthReport;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,23 @@ public final class ReportFormatter {
             lines.add("Variation: skipped (blocklisted); roll " + number(report.roll()));
         } else {
             lines.add("Variation: roll " + number(report.roll()) + ", multiplier x" + number(report.variationMultiplier()));
+        }
+        if (report.capped()) {
+            lines.add("Cap: the max health cap of " + number(report.cap()) + " applies.");
+        }
+        return lines;
+    }
+
+    /** The player max health lines: the switch, the bases, the result, and the cap when it applies. */
+    public static List<String> playerHealth(PlayerHealthReport report) {
+        List<String> lines = new ArrayList<>();
+        lines.add("Base health: " + (report.enabled() ? "on, " + number(report.configuredBase()) : "off"));
+        lines.add("Max health: underlying base " + number(report.underlyingBase()) + ", adjusted base "
+                + number(report.adjustedBase()) + ", result " + number(report.maxHealth()) + "; health "
+                + number(report.health()));
+        if (!report.inEffect()) {
+            lines.add("Not yet in effect: the config asks for base " + number(report.enabled()
+                    ? report.configuredBase() : report.underlyingBase()) + ".");
         }
         if (report.capped()) {
             lines.add("Cap: the max health cap of " + number(report.cap()) + " applies.");

@@ -1,6 +1,7 @@
 package com.mahghuuuls.balancekit.command;
 
 import com.mahghuuuls.balancekit.mob.HealthReport;
+import com.mahghuuuls.balancekit.player.PlayerHealthReport;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -9,6 +10,20 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ReportFormatterTest {
+
+    @Test
+    void thePlayerHealthLinesShowTheSwitchBasesAndResult() {
+        assertEquals(Arrays.asList("Base health: on, 30", "Max health: underlying base 20, adjusted base 30, result 34; health 34"),
+                ReportFormatter.playerHealth(new PlayerHealthReport(true, 30.0D, 20.0D, 30.0D, 34.0D, 34.0D, 1024.0D)));
+        assertEquals(Arrays.asList("Base health: off", "Max health: underlying base 20, adjusted base 20, result 20; health 15"),
+                ReportFormatter.playerHealth(new PlayerHealthReport(false, 30.0D, 20.0D, 20.0D, 20.0D, 15.0D, 1024.0D)));
+        assertEquals("Not yet in effect: the config asks for base 30.",
+                ReportFormatter.playerHealth(new PlayerHealthReport(true, 30.0D, 25.0D, 37.5D, 37.5D, 37.5D, 1024.0D)).get(2));
+        assertEquals("Not yet in effect: the config asks for base 20.",
+                ReportFormatter.playerHealth(new PlayerHealthReport(false, 30.0D, 20.0D, 30.0D, 30.0D, 30.0D, 1024.0D)).get(2));
+        assertEquals("Cap: the max health cap of 1024 applies.",
+                ReportFormatter.playerHealth(new PlayerHealthReport(true, 5000.0D, 20.0D, 5000.0D, 1024.0D, 1024.0D, 1024.0D)).get(2));
+    }
 
     @Test
     void theDamageLineShowsBothMultipliersAndTheBlocklist() {

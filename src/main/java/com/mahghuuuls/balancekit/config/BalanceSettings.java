@@ -21,6 +21,8 @@ public final class BalanceSettings {
     private final double mobReceived;
     private final double playerDealt;
     private final double playerReceived;
+    private final boolean playerBaseHealthEnabled;
+    private final double playerBaseHealth;
     private final Set<String> excludedDamageTypes;
     private final boolean logDamageTypes;
     private final List<EntrySpec> entityRules;
@@ -37,6 +39,8 @@ public final class BalanceSettings {
         this.mobReceived = b.mobReceived;
         this.playerDealt = b.playerDealt;
         this.playerReceived = b.playerReceived;
+        this.playerBaseHealthEnabled = b.playerBaseHealthEnabled;
+        this.playerBaseHealth = b.playerBaseHealth;
         this.excludedDamageTypes = Collections.unmodifiableSet(new LinkedHashSet<>(b.excludedDamageTypes));
         this.logDamageTypes = b.logDamageTypes;
         this.entityRules = Collections.unmodifiableList(new ArrayList<>(b.entityRules));
@@ -80,6 +84,16 @@ public final class BalanceSettings {
         return playerReceived;
     }
 
+    /** Whether every player's max health is computed from {@link #playerBaseHealth()} as its base. */
+    public boolean playerBaseHealthEnabled() {
+        return playerBaseHealthEnabled;
+    }
+
+    /** The base max health for players while the switch is on; above 0. */
+    public double playerBaseHealth() {
+        return playerBaseHealth;
+    }
+
     /** Exact damage type names that are never scaled. */
     public Set<String> excludedDamageTypes() {
         return excludedDamageTypes;
@@ -119,6 +133,8 @@ public final class BalanceSettings {
         double mobReceived = 1.0D;
         double playerDealt = 1.0D;
         double playerReceived = 1.0D;
+        boolean playerBaseHealthEnabled;
+        double playerBaseHealth = 20.0D;
         Set<String> excludedDamageTypes = Collections.emptySet();
         boolean logDamageTypes;
         List<EntrySpec> entityRules = Collections.emptyList();

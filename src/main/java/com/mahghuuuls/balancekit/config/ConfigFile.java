@@ -56,7 +56,14 @@ public final class ConfigFile {
         raw.put(SettingsParser.MOBS_RECEIVED, number(config, "mobs", "damageReceived", "1.0",
                 "Multiplier for damage every mob takes, before its armor. 0 means hits remove no health. Must be 0 or more."));
 
-        config.getCategory("player").setComment("Multipliers for players. Fake players (automation stand-ins) get none. 1.0 means no change.");
+        config.getCategory("player").setComment("Settings for players. Fake players (automation stand-ins) get none. 1.0 means no change.");
+        raw.put(SettingsParser.PLAYER_BASE_HEALTH_ENABLED, switchText(config, "player", "baseHealthEnabled",
+                "true makes every player's max health start from baseHealth instead of the game's base (20 in vanilla). Armor, food, effects and"
+                        + " other mods still raise or lower it from there. false leaves players at the game's base."
+                        + " true or false."));
+        raw.put(SettingsParser.PLAYER_BASE_HEALTH, number(config, "player", "baseHealth", "20.0",
+                "Base max health for players while baseHealthEnabled is true. 20.0 is ten hearts. Must be above 0;"
+                        + " the game's max health cap still applies."));
         raw.put(SettingsParser.PLAYER_DEALT, number(config, "player", "damageDealt", "1.0",
                 "Multiplier for damage every player deals, before the victim's armor. Example: 2.0. Must be 0 or more."));
         raw.put(SettingsParser.PLAYER_RECEIVED, number(config, "player", "damageReceived", "1.0",

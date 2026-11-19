@@ -5,6 +5,7 @@ import com.mahghuuuls.balancekit.config.BalanceSettings;
 import com.mahghuuuls.balancekit.config.ConfigFile;
 import com.mahghuuuls.balancekit.damage.DamageScaler;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
+import com.mahghuuuls.balancekit.player.PlayerBalancer;
 import com.mahghuuuls.balancekit.rules.RuleBook;
 import com.mahghuuuls.balancekit.state.BalanceStates;
 import net.minecraft.util.ResourceLocation;
@@ -33,6 +34,7 @@ public class BalanceKitMod {
     private RuleBook rules;
     private MobBalancer mobs;
     private DamageScaler damage;
+    private PlayerBalancer players;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -45,6 +47,8 @@ public class BalanceKitMod {
         rules = new RuleBook(settings);
         mobs = new MobBalancer(rules);
         MinecraftForge.EVENT_BUS.register(mobs);
+        players = new PlayerBalancer(settings);
+        MinecraftForge.EVENT_BUS.register(players);
         damage = new DamageScaler(settings, mobs);
         MinecraftForge.EVENT_BUS.register(damage);
     }
@@ -61,6 +65,6 @@ public class BalanceKitMod {
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new InspectCommand(mobs, damage));
+        event.registerServerCommand(new InspectCommand(mobs, players, damage));
     }
 }

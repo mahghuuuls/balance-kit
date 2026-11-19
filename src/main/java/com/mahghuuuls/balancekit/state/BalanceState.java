@@ -37,6 +37,7 @@ public final class BalanceState {
     private double lastHealthBase = Double.NaN;
     private MobProfile cachedProfile;
     private float healthAfterLastApply = Float.NaN;
+    private float healthToRestore = Float.NaN;
 
     public boolean isBalanced() {
         return balanced;
@@ -62,6 +63,25 @@ public final class BalanceState {
 
     public void setRoll(double roll) {
         this.roll = roll;
+    }
+
+    /**
+     * Health a respawned player must get back after its max health is set: the game copies health into the new player
+     * entity at the End exit before Balance Kit's share exists, which clamps it. NaN when none.
+     */
+    public float takeHealthToRestore() {
+        float health = healthToRestore;
+        healthToRestore = Float.NaN;
+        return health;
+    }
+
+    public void setHealthToRestore(float health) {
+        this.healthToRestore = health;
+    }
+
+    /** Copies the saved part of another state, as when the game replaces a player entity on respawn. */
+    public void copySavedFrom(BalanceState other) {
+        read(other.write(NO_FRACTION));
     }
 
     /** The fraction saved with the entity, or {@link #NO_FRACTION}. Returned once, right after a load. */

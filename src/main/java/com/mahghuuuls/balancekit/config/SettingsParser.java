@@ -20,6 +20,8 @@ public final class SettingsParser {
     public static final String MOBS_RECEIVED = "mobs.damageReceived";
     public static final String PLAYER_DEALT = "player.damageDealt";
     public static final String PLAYER_RECEIVED = "player.damageReceived";
+    public static final String PLAYER_BASE_HEALTH_ENABLED = "player.baseHealthEnabled";
+    public static final String PLAYER_BASE_HEALTH = "player.baseHealth";
     public static final String EXCLUDED_DAMAGE_TYPES = "damage.excludedDamageTypes";
     public static final String LOG_DAMAGE_TYPES = "diagnostics.logDamageTypes";
     public static final String ENTITY_RULES = "rules.entityRules";
@@ -55,6 +57,8 @@ public final class SettingsParser {
         b.mobReceived = nonNegativeMultiplier(MOBS_RECEIVED, raw.get(MOBS_RECEIVED), warnings);
         b.playerDealt = nonNegativeMultiplier(PLAYER_DEALT, raw.get(PLAYER_DEALT), warnings);
         b.playerReceived = nonNegativeMultiplier(PLAYER_RECEIVED, raw.get(PLAYER_RECEIVED), warnings);
+        b.playerBaseHealthEnabled = switchSetting(PLAYER_BASE_HEALTH_ENABLED, raw.get(PLAYER_BASE_HEALTH_ENABLED), warnings);
+        b.playerBaseHealth = positiveValue(PLAYER_BASE_HEALTH, raw.get(PLAYER_BASE_HEALTH), 20.0D, warnings);
         b.excludedDamageTypes = names(lines(lists, EXCLUDED_DAMAGE_TYPES));
         b.logDamageTypes = switchSetting(LOG_DAMAGE_TYPES, raw.get(LOG_DAMAGE_TYPES), warnings);
         b.entityRules = EntryParser.parse(ENTITY_RULES, lines(lists, ENTITY_RULES), true, warnings);
@@ -118,19 +122,24 @@ public final class SettingsParser {
 
     /** A finite multiplier above 0. Missing text means the shipped default, 1.0. */
     static double positiveMultiplier(String location, String text, List<ConfigWarning> warnings) {
+        return positiveValue(location, text, 1.0D, warnings);
+    }
+
+    /** A finite number above 0. Missing or invalid text gives {@code fallback}, the shipped default. */
+    static double positiveValue(String location, String text, double fallback, List<ConfigWarning> warnings) {
         if (text == null) {
-            return 1.0D;
+            return fallback;
         }
         double value;
         try {
             value = Double.parseDouble(text.trim());
         } catch (NumberFormatException e) {
-            warnings.add(new ConfigWarning(location, text, "is not a number; using 1.0"));
-            return 1.0D;
+            warnings.add(new ConfigWarning(location, text, "is not a number; using " + fallback));
+            return fallback;
         }
         if (Double.isNaN(value) || Double.isInfinite(value) || value <= 0.0D) {
-            warnings.add(new ConfigWarning(location, text, "must be a finite number above 0; using 1.0"));
-            return 1.0D;
+            warnings.add(new ConfigWarning(location, text, "must be a finite number above 0; using " + fallback));
+            return fallback;
         }
         return value;
     }
