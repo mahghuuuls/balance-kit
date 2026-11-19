@@ -2,6 +2,7 @@ package com.mahghuuuls.balancekit.command;
 
 import com.mahghuuuls.balancekit.config.BalanceSettings;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
+import com.mahghuuuls.balancekit.rules.RuleBook;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.server.MinecraftServer;
@@ -39,7 +40,7 @@ class InspectCommandTest {
         };
     }
 
-    private final InspectCommand command = new InspectCommand(new MobBalancer(BalanceSettings.NEUTRAL));
+    private final InspectCommand command = new InspectCommand(new MobBalancer(new RuleBook(BalanceSettings.NEUTRAL)));
 
     @Test
     void operatorsMayUseItAndOthersMayNot() {

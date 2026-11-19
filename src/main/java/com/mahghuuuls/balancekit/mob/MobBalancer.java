@@ -1,12 +1,16 @@
 package com.mahghuuuls.balancekit.mob;
 
 import com.mahghuuuls.balancekit.attribute.Contribution;
-import com.mahghuuuls.balancekit.config.BalanceSettings;
+import com.mahghuuuls.balancekit.rules.MobProfile;
+import com.mahghuuuls.balancekit.rules.RuleBook;
 import com.mahghuuuls.balancekit.state.BalanceState;
 import com.mahghuuuls.balancekit.state.BalanceStates;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -16,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -39,13 +44,13 @@ public final class MobBalancer {
 
     private static final Logger LOG = LogManager.getLogger("Balance Kit");
 
-    private final BalanceSettings settings;
+    private final RuleBook rules;
     /** Mobs waiting for their first balance. Weak, so an unloaded mob is dropped; entities compare by entity id. */
     private final Set<EntityLiving> pending = Collections.newSetFromMap(new WeakHashMap<EntityLiving, Boolean>());
     private final Set<String> reportedFailures = new HashSet<>();
 
-    public MobBalancer(BalanceSettings settings) {
-        this.settings = settings;
+    public MobBalancer(RuleBook rules) {
+        this.rules = rules;
     }
 
     /** A mob is any non-player creature. Armor stands and other non-creature living entities are not. */
@@ -71,7 +76,7 @@ public final class MobBalancer {
         EntityLiving mob = (EntityLiving) entity;
         if (state.isBalanced()) {
             float saved = state.takeSavedHealthFraction();
-            run(mob, state, () -> Contribution.restoreMaxHealth(mob, healthFactor(), saved));
+            run(mob, state, () -> Contribution.restoreMaxHealth(mob, profile(mob, state).healthFactor(), saved));
         } else {
             pending.add(mob);
         }
@@ -93,7 +98,13 @@ public final class MobBalancer {
             return;
         }
         if (first) {
-            state.markBalanced();
+            run(mob, state, () -> {
+                state.setMatches(rules.evaluateFirst(entityId(mob), () -> mob.writeToNBT(new NBTTagCompound())));
+                state.markBalanced();
+                return Contribution.applyMaxHealth(mob, profile(mob, state).healthFactor(),
+                        state.healthAfterLastApply());
+            });
+            return;
         } else if (!state.isBalanced()) {
             return;
         } else if (!baseChanged(mob, state)) {
@@ -101,7 +112,8 @@ public final class MobBalancer {
             state.setHealthAfterLastApply(mob.getHealth());
             return;
         }
-        run(mob, state, () -> Contribution.applyMaxHealth(mob, healthFactor(), state.healthAfterLastApply()));
+        run(mob, state, () -> Contribution.applyMaxHealth(mob, profile(mob, state).healthFactor(),
+                state.healthAfterLastApply()));
     }
 
     private static boolean baseChanged(EntityLiving mob, BalanceState state) {
@@ -114,13 +126,27 @@ public final class MobBalancer {
         if (state == null || !state.isBalanced()) {
             return HealthReport.pending();
         }
+        MobProfile profile = profile(mob, state);
         return new HealthReport(Contribution.base(mob, SharedMonsterAttributes.MAX_HEALTH),
-                Contribution.appliedMaxHealthBase(mob), healthFactor(), mob.getMaxHealth(), mob.getHealth(),
+                Contribution.appliedMaxHealthBase(mob), profile.healthFactor(), mob.getMaxHealth(), mob.getHealth(),
                 Contribution.cap(mob, SharedMonsterAttributes.MAX_HEALTH));
     }
 
-    double healthFactor() {
-        return settings.mobHealth();
+    /** The rule and blocklist entries that apply to this mob, as "list line n: text"; empty before first balance. */
+    public List<String> appliedEntries(EntityLiving mob) {
+        BalanceState state = BalanceStates.get(mob);
+        return state == null || !state.isBalanced() ? Collections.<String>emptyList()
+                : profile(mob, state).appliedEntries();
+    }
+
+    private MobProfile profile(EntityLiving mob, BalanceState state) {
+        return rules.profile(entityId(mob), state.matches());
+    }
+
+    /** The mob's registered entity ID, or its class name when it has none. */
+    static String entityId(EntityLiving mob) {
+        ResourceLocation key = EntityList.getKey(mob);
+        return key == null ? mob.getClass().getName() : key.toString();
     }
 
     /** Runs one adjustment and remembers the base and health it left, for the next recheck. */

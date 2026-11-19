@@ -46,6 +46,18 @@ public final class ReportFormatter {
         return lines;
     }
 
+    /** One line per applicable rule or blocklist entry, or a line saying there is none. */
+    public static List<String> entries(List<String> applied) {
+        List<String> lines = new ArrayList<>();
+        if (applied.isEmpty()) {
+            lines.add("Rules and blocklists: none apply.");
+        }
+        for (String entry : applied) {
+            lines.add("Applies: " + entry);
+        }
+        return lines;
+    }
+
     /** A number with up to three decimals and no trailing zeros, so 40.0 reads "40" and 0.345 reads "0.345". */
     public static String number(double value) {
         if (Double.isNaN(value)) {

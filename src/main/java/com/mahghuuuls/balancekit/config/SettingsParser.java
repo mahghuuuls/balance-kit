@@ -12,14 +12,35 @@ import java.util.Map;
 public final class SettingsParser {
 
     public static final String MOBS_HEALTH = "mobs.health";
+    public static final String ENTITY_RULES = "rules.entityRules";
+    public static final String HEALTH_BLOCKLIST = "blocklists.health";
+    public static final String VARIATION_BLOCKLIST = "blocklists.variation";
+    public static final String DAMAGE_BLOCKLIST = "blocklists.damage";
+    public static final String MOVEMENT_BLOCKLIST = "blocklists.movement";
 
     private SettingsParser() {
     }
 
     public static Result parse(Map<String, String> raw) {
+        return parse(raw, Collections.<String, String[]>emptyMap());
+    }
+
+    /** {@code raw} holds single values by key, {@code lists} the lines of each list setting by key. */
+    public static Result parse(Map<String, String> raw, Map<String, String[]> lists) {
         List<ConfigWarning> warnings = new ArrayList<>();
         double mobHealth = positiveMultiplier(MOBS_HEALTH, raw.get(MOBS_HEALTH), warnings);
-        return new Result(new BalanceSettings(mobHealth), warnings);
+        BalanceSettings settings = new BalanceSettings(mobHealth,
+                EntryParser.parse(ENTITY_RULES, lines(lists, ENTITY_RULES), true, warnings),
+                EntryParser.parse(HEALTH_BLOCKLIST, lines(lists, HEALTH_BLOCKLIST), false, warnings),
+                EntryParser.parse(VARIATION_BLOCKLIST, lines(lists, VARIATION_BLOCKLIST), false, warnings),
+                EntryParser.parse(DAMAGE_BLOCKLIST, lines(lists, DAMAGE_BLOCKLIST), false, warnings),
+                EntryParser.parse(MOVEMENT_BLOCKLIST, lines(lists, MOVEMENT_BLOCKLIST), false, warnings));
+        return new Result(settings, warnings);
+    }
+
+    private static String[] lines(Map<String, String[]> lists, String key) {
+        String[] lines = lists.get(key);
+        return lines == null ? new String[0] : lines;
     }
 
     /** A finite multiplier above 0. Missing text means the shipped default, 1.0. */

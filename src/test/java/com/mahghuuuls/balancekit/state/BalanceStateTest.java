@@ -35,6 +35,19 @@ class BalanceStateTest {
     }
 
     @Test
+    void matchesAreSavedAsAStringListAndReadBack() {
+        BalanceState state = new BalanceState();
+        state.markBalanced();
+        state.setMatches(new java.util.TreeSet<>(java.util.Arrays.asList("b", "a")));
+        NBTTagCompound tag = state.write(1.0F);
+        assertEquals(2, tag.getTagList("matches", 8).tagCount());
+        assertEquals("a", tag.getTagList("matches", 8).getStringTagAt(0));
+        BalanceState loaded = new BalanceState();
+        loaded.read(tag);
+        assertEquals(state.matches(), loaded.matches());
+    }
+
+    @Test
     void noFractionIsWrittenWhenThereIsNone() {
         BalanceState state = new BalanceState();
         assertFalse(state.write(BalanceState.NO_FRACTION).hasKey("healthFraction"));

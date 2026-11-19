@@ -81,6 +81,7 @@ public final class InspectCommand extends CommandBase {
         List<String> sections = new ArrayList<>();
         if (MobBalancer.isMob(target)) {
             sections.addAll(ReportFormatter.health(mobs.report((EntityLiving) target)));
+            sections.addAll(ReportFormatter.entries(mobs.appliedEntries((EntityLiving) target)));
         } else if (target instanceof EntityPlayer) {
             sections.add("Player: no player adjustments are active.");
         } else {
