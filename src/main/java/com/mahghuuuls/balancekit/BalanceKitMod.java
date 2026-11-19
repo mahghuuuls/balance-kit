@@ -1,9 +1,17 @@
 package com.mahghuuuls.balancekit;
 
+import com.mahghuuuls.balancekit.config.BalanceSettings;
+import com.mahghuuuls.balancekit.config.ConfigFile;
+import com.mahghuuuls.balancekit.mob.MobBalancer;
+import com.mahghuuuls.balancekit.state.BalanceStates;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
 
 /**
  * Entry point. Gameplay rules live in their own packages; this class only wires them to the Forge lifecycle.
@@ -14,8 +22,16 @@ public class BalanceKitMod {
 
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
 
+    private BalanceSettings settings = BalanceSettings.NEUTRAL;
+
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        LOGGER.debug("{} {} loading", Tags.MOD_NAME, Tags.VERSION);
+        settings = ConfigFile.load(new File(event.getModConfigurationDirectory(), Tags.MOD_ID + ".cfg"), LOGGER);
+        BalanceStates.register();
+    }
+
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        MinecraftForge.EVENT_BUS.register(new MobBalancer(settings));
     }
 }

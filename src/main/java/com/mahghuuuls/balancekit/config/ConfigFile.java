@@ -1,0 +1,50 @@
+package com.mahghuuuls.balancekit.config;
+
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Owns the layout and comments of {@code config/balancekit.cfg}. Reads the raw text of every setting and hands it to
+ * {@link SettingsParser}; the file is read once, at startup.
+ */
+public final class ConfigFile {
+
+    private static final String RESTART = " Restart the game or server to apply changes.";
+
+    private ConfigFile() {
+    }
+
+    /**
+     * Reads a number setting as text. Forge's own number getter replaces text it cannot read with the default and
+     * saves that back without a word; reading text leaves the value as written, so the parser can report it.
+     */
+    private static String number(Configuration config, String category, String key, String defaultValue, String comment) {
+        return config.get(category, key, defaultValue, comment + " Default: " + defaultValue + "." + RESTART,
+                Property.Type.DOUBLE).getString();
+    }
+
+    public static BalanceSettings load(File file, Logger log) {
+        Configuration config = new Configuration(file);
+        config.load();
+
+        config.getCategory("mobs").setComment("Multipliers for mobs: every non-player creature, vanilla or modded. 1.0 means no change.");
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.MOBS_HEALTH, number(config, "mobs", "health", "1.0",
+                "Max health multiplier for every mob. Example: 2.0 doubles it. Must be above 0."));
+
+        if (config.hasChanged()) {
+            config.save();
+        }
+
+        SettingsParser.Result result = SettingsParser.parse(raw);
+        for (ConfigWarning warning : result.warnings()) {
+            log.warn("Config {}", warning);
+        }
+        return result.settings();
+    }
+}
