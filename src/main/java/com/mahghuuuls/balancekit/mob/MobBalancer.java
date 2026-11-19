@@ -100,6 +100,7 @@ public final class MobBalancer {
         if (first) {
             run(mob, state, () -> {
                 state.setMatches(rules.evaluateFirst(entityId(mob), () -> mob.writeToNBT(new NBTTagCompound())));
+                state.setRoll(mob.getRNG().nextDouble());
                 state.markBalanced();
                 return Contribution.applyMaxHealth(mob, profile(mob, state).healthFactor(),
                         state.healthAfterLastApply());
@@ -129,7 +130,8 @@ public final class MobBalancer {
         MobProfile profile = profile(mob, state);
         return new HealthReport(Contribution.base(mob, SharedMonsterAttributes.MAX_HEALTH),
                 Contribution.appliedMaxHealthBase(mob), profile.healthFactor(), mob.getMaxHealth(), mob.getHealth(),
-                Contribution.cap(mob, SharedMonsterAttributes.MAX_HEALTH));
+                Contribution.cap(mob, SharedMonsterAttributes.MAX_HEALTH), state.roll(), profile.variationMultiplier(),
+                profile.variationBlocked());
     }
 
     /** The rule and blocklist entries that apply to this mob, as "list line n: text"; empty before first balance. */
@@ -140,7 +142,7 @@ public final class MobBalancer {
     }
 
     private MobProfile profile(EntityLiving mob, BalanceState state) {
-        return rules.profile(entityId(mob), state.matches());
+        return rules.profile(entityId(mob), state.matches(), state.roll());
     }
 
     /** The mob's registered entity ID, or its class name when it has none. */

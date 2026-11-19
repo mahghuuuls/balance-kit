@@ -13,8 +13,8 @@ import java.util.TreeSet;
  * saved, so they are rebuilt from this record and the current config every time the entity loads.
  *
  * <p>Saved: whether the entity had its first balance, the fingerprints of the conditioned entries it matched then,
- * and its health fraction at save time (computed by the caller that attached the state). Transient: values that only
- * matter while the entity is loaded.
+ * its variation roll (drawn at first balance and kept for life), and its health fraction at save time (computed by
+ * the caller that attached the state). Transient: values that only matter while the entity is loaded.
  */
 public final class BalanceState {
 
@@ -23,6 +23,7 @@ public final class BalanceState {
     static final String KEY_BALANCED = "balanced";
     static final String KEY_HEALTH_FRACTION = "healthFraction";
     static final String KEY_MATCHES = "matches";
+    static final String KEY_ROLL = "roll";
     private static final int TAG_STRING = 8;
 
     /** No saved fraction. */
@@ -30,6 +31,7 @@ public final class BalanceState {
 
     private boolean balanced;
     private Set<String> matches = Collections.emptySet();
+    private double roll = Double.NaN;
     private float savedHealthFraction = NO_FRACTION;
     private double lastHealthBase = Double.NaN;
     private float healthAfterLastApply = Float.NaN;
@@ -49,6 +51,15 @@ public final class BalanceState {
 
     public void setMatches(Set<String> fingerprints) {
         matches = Collections.unmodifiableSet(new TreeSet<>(fingerprints));
+    }
+
+    /** The mob's variation roll in [0, 1), kept for life; NaN before it has one. */
+    public double roll() {
+        return roll;
+    }
+
+    public void setRoll(double roll) {
+        this.roll = roll;
     }
 
     /** The fraction saved with the entity, or {@link #NO_FRACTION}. Returned once, right after a load. */
@@ -82,6 +93,9 @@ public final class BalanceState {
         if (currentHealthFraction > 0.0F) {
             tag.setFloat(KEY_HEALTH_FRACTION, currentHealthFraction);
         }
+        if (!Double.isNaN(roll)) {
+            tag.setDouble(KEY_ROLL, roll);
+        }
         if (!matches.isEmpty()) {
             NBTTagList list = new NBTTagList();
             for (String fingerprint : matches) {
@@ -95,6 +109,7 @@ public final class BalanceState {
     void read(NBTTagCompound tag) {
         balanced = tag.getBoolean(KEY_BALANCED);
         savedHealthFraction = tag.hasKey(KEY_HEALTH_FRACTION) ? tag.getFloat(KEY_HEALTH_FRACTION) : NO_FRACTION;
+        roll = tag.hasKey(KEY_ROLL) ? tag.getDouble(KEY_ROLL) : Double.NaN;
         Set<String> read = new TreeSet<>();
         NBTTagList list = tag.getTagList(KEY_MATCHES, TAG_STRING);
         for (int i = 0; i < list.tagCount(); i++) {

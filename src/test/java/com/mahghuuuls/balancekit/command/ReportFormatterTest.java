@@ -11,6 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ReportFormatterTest {
 
     @Test
+    void aMobWithoutARollReadsNotAvailable() {
+        List<String> lines = ReportFormatter.health(
+                new HealthReport(20.0D, 20.0D, 1.0D, 20.0D, 20.0D, 1024.0D, Double.NaN, 1.0D, false));
+        assertEquals("Variation: roll n/a, multiplier x1", lines.get(2));
+    }
+
+    @Test
     void numbersDropTrailingZeros() {
         assertEquals("40", ReportFormatter.number(40.0D));
         assertEquals("0.345", ReportFormatter.number(0.345D));
@@ -20,16 +27,18 @@ class ReportFormatterTest {
 
     @Test
     void balancedMobShowsUnderlyingAdjustedAndResult() {
-        List<String> lines = ReportFormatter.health(new HealthReport(20.0D, 40.0D, 2.0D, 40.0D, 34.0D, 1024.0D));
+        List<String> lines = ReportFormatter.health(new HealthReport(20.0D, 40.0D, 2.0D, 40.0D, 34.0D, 1024.0D, 0.25D, 1.0D, false));
         assertEquals(Arrays.asList("Mob: yes",
-                "Max health: underlying base 20, adjusted base 40 (x2), result 40; health 34"), lines);
+                "Max health: underlying base 20, adjusted base 40 (x2), result 40; health 34",
+                "Variation: roll 0.25, multiplier x1"), lines);
     }
 
     @Test
     void cappedResultSaysSo() {
-        List<String> lines = ReportFormatter.health(new HealthReport(300.0D, 30000.0D, 100.0D, 1024.0D, 1024.0D, 1024.0D));
+        List<String> lines = ReportFormatter.health(new HealthReport(300.0D, 30000.0D, 100.0D, 1024.0D, 1024.0D, 1024.0D, 0.5D, 1.5D, true));
         assertEquals("Max health: underlying base 300, adjusted base 30000 (x100), result 1024; health 1024", lines.get(1));
-        assertEquals("Cap: the max health cap of 1024 applies.", lines.get(2));
+        assertEquals("Variation: skipped (blocklisted); roll 0.5", lines.get(2));
+        assertEquals("Cap: the max health cap of 1024 applies.", lines.get(3));
     }
 
     @Test
@@ -41,7 +50,7 @@ class ReportFormatterTest {
     @Test
     void anAdjustmentNotYetInEffectIsShownAsApplied() {
         // A tamed wolf: base 20, Balance Kit's stale share of 8 still applied, config asks for x2.
-        List<String> lines = ReportFormatter.health(new HealthReport(20.0D, 28.0D, 2.0D, 28.0D, 20.0D, 1024.0D));
+        List<String> lines = ReportFormatter.health(new HealthReport(20.0D, 28.0D, 2.0D, 28.0D, 20.0D, 1024.0D, 0.0D, 1.0D, false));
         assertEquals("Max health: underlying base 20, adjusted base 28 (x1.4), result 28; health 20", lines.get(1));
         assertEquals("Not yet in effect: the config asks for x2.", lines.get(2));
     }

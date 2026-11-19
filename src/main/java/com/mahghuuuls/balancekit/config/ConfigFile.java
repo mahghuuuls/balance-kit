@@ -40,6 +40,11 @@ public final class ConfigFile {
         Map<String, String> raw = new HashMap<>();
         raw.put(SettingsParser.MOBS_HEALTH, number(config, "mobs", "health", "1.0",
                 "Max health multiplier for every mob. Example: 2.0 doubles it. Must be above 0."));
+        raw.put(SettingsParser.VARIATION_LOWER, number(config, "mobs", "variationLower", "1.0",
+                "Lowest health variation multiplier. Each mob gets a random lasting position between lower and upper."
+                        + " Example: 0.8. Must be above 0 and not above variationUpper."));
+        raw.put(SettingsParser.VARIATION_UPPER, number(config, "mobs", "variationUpper", "1.0",
+                "Highest health variation multiplier (not reached unless equal to lower). Example: 1.2. Must be above 0."));
 
         config.getCategory("rules").setComment("Entity rules, one per line: <entity id> [<NBT condition>] [health=<n>] [dealt=<n>] [received=<n>] [movement=<n>]."
                 + " Example: minecraft:zombie {IsBaby:1b} health=1.5. health and movement must be above 0; dealt and"

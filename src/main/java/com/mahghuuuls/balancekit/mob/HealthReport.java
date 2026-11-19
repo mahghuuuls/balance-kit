@@ -13,9 +13,12 @@ public final class HealthReport {
     private final double maxHealth;
     private final double health;
     private final double cap;
+    private final double roll;
+    private final double variationMultiplier;
+    private final boolean variationBlocked;
 
     public HealthReport(double underlyingBase, double adjustedBase, double configuredFactor, double maxHealth,
-                        double health, double cap) {
+                        double health, double cap, double roll, double variationMultiplier, boolean variationBlocked) {
         this.balanced = true;
         this.underlyingBase = underlyingBase;
         this.adjustedBase = adjustedBase;
@@ -23,6 +26,9 @@ public final class HealthReport {
         this.maxHealth = maxHealth;
         this.health = health;
         this.cap = cap;
+        this.roll = roll;
+        this.variationMultiplier = variationMultiplier;
+        this.variationBlocked = variationBlocked;
     }
 
     private HealthReport() {
@@ -33,6 +39,9 @@ public final class HealthReport {
         this.maxHealth = Double.NaN;
         this.health = Double.NaN;
         this.cap = Double.NaN;
+        this.roll = Double.NaN;
+        this.variationMultiplier = Double.NaN;
+        this.variationBlocked = false;
     }
 
     public static HealthReport pending() {
@@ -77,6 +86,20 @@ public final class HealthReport {
 
     public double cap() {
         return cap;
+    }
+
+    /** The mob's saved variation roll in [0, 1), or NaN. */
+    public double roll() {
+        return roll;
+    }
+
+    /** The variation multiplier included in the configured factor. */
+    public double variationMultiplier() {
+        return variationMultiplier;
+    }
+
+    public boolean variationBlocked() {
+        return variationBlocked;
     }
 
     /** True when the result sits at the attribute's cap. */

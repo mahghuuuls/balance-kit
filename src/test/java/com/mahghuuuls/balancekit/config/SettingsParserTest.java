@@ -24,6 +24,42 @@ class SettingsParserTest {
         assertTrue(result.warnings().isEmpty());
     }
 
+    private static SettingsParser.Result parseRange(String lower, String upper) {
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.VARIATION_LOWER, lower);
+        raw.put(SettingsParser.VARIATION_UPPER, upper);
+        return SettingsParser.parse(raw);
+    }
+
+    @Test
+    void variationDefaultsToOneAndAcceptsAValidRange() {
+        BalanceSettings neutral = SettingsParser.parse(Collections.<String, String>emptyMap()).settings();
+        assertEquals(1.0D, neutral.variationLower());
+        assertEquals(1.0D, neutral.variationUpper());
+        SettingsParser.Result result = parseRange("1.3", "1.9");
+        assertTrue(result.warnings().isEmpty());
+        assertEquals(1.3D, result.settings().variationLower());
+        assertEquals(1.9D, result.settings().variationUpper());
+        assertEquals(1.5D, parseRange("1.5", "1.5").settings().variationUpper());
+    }
+
+    @Test
+    void lowerAboveUpperWarnsAndUsesOneForBoth() {
+        SettingsParser.Result result = parseRange("2", "1.5");
+        assertEquals(1, result.warnings().size());
+        assertEquals(1.0D, result.settings().variationLower());
+        assertEquals(1.0D, result.settings().variationUpper());
+    }
+
+    @Test
+    void invalidVariationEndWarnsAndUsesOne() {
+        SettingsParser.Result result = parseRange("0", "1.5");
+        assertEquals(1, result.warnings().size());
+        assertEquals("mobs.variationLower", result.warnings().get(0).location());
+        assertEquals(1.0D, result.settings().variationLower());
+        assertEquals(1.5D, result.settings().variationUpper());
+    }
+
     @Test
     void acceptsPositiveMultipliers() {
         assertEquals(0.5D, parseMobHealth("0.5").settings().mobHealth());

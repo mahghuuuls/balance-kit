@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 public final class RuleBook {
 
     private final double globalHealth;
+    private final VariationRange variation;
     // Global mob damage and movement multipliers arrive with their settings; until then they are neutral.
     private final double globalDealt = 1.0D;
     private final double globalReceived = 1.0D;
@@ -39,6 +40,7 @@ public final class RuleBook {
 
     public RuleBook(BalanceSettings settings) {
         this.globalHealth = settings.mobHealth();
+        this.variation = new VariationRange(settings.variationLower(), settings.variationUpper());
         add(settings.entityRules(), Kind.RULE);
         add(settings.healthBlocklist(), Kind.HEALTH_BLOCK);
         add(settings.variationBlocklist(), Kind.VARIATION_BLOCK);
@@ -85,8 +87,11 @@ public final class RuleBook {
         return matches;
     }
 
-    /** What applies to a mob of this entity ID with these saved matches, under the current config. */
-    public MobProfile profile(String entityId, Set<String> savedMatches) {
+    /**
+     * What applies to a mob of this entity ID with these saved matches and this variation roll (NaN for none),
+     * under the current config.
+     */
+    public MobProfile profile(String entityId, Set<String> savedMatches, double roll) {
         double ruleHealth = 1.0D;
         double ruleDealt = 1.0D;
         double ruleReceived = 1.0D;
@@ -124,11 +129,13 @@ public final class RuleBook {
                     throw new IllegalStateException(entry.kind.name());
             }
         }
-        double health = healthBlocked ? 1.0D : globalHealth * ruleHealth;
+        boolean noVariation = healthBlocked || variationBlocked || Double.isNaN(roll);
+        double variationMultiplier = noVariation ? 1.0D : variation.multiplier(roll);
+        double health = healthBlocked ? 1.0D : globalHealth * ruleHealth * variationMultiplier;
         double dealt = damageBlocked ? 1.0D : globalDealt * ruleDealt;
         double received = damageBlocked ? 1.0D : globalReceived * ruleReceived;
         double movement = movementBlocked ? 1.0D : globalMovement * ruleMovement;
-        return new MobProfile(health, dealt, received, movement, healthBlocked,
+        return new MobProfile(health, variationMultiplier, dealt, received, movement, healthBlocked,
                 healthBlocked || variationBlocked, damageBlocked, movementBlocked, new ArrayList<>(applied));
     }
 

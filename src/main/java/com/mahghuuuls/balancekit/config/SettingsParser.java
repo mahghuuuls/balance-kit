@@ -12,6 +12,8 @@ import java.util.Map;
 public final class SettingsParser {
 
     public static final String MOBS_HEALTH = "mobs.health";
+    public static final String VARIATION_LOWER = "mobs.variationLower";
+    public static final String VARIATION_UPPER = "mobs.variationUpper";
     public static final String ENTITY_RULES = "rules.entityRules";
     public static final String HEALTH_BLOCKLIST = "blocklists.health";
     public static final String VARIATION_BLOCKLIST = "blocklists.variation";
@@ -29,7 +31,15 @@ public final class SettingsParser {
     public static Result parse(Map<String, String> raw, Map<String, String[]> lists) {
         List<ConfigWarning> warnings = new ArrayList<>();
         double mobHealth = positiveMultiplier(MOBS_HEALTH, raw.get(MOBS_HEALTH), warnings);
-        BalanceSettings settings = new BalanceSettings(mobHealth,
+        double lower = positiveMultiplier(VARIATION_LOWER, raw.get(VARIATION_LOWER), warnings);
+        double upper = positiveMultiplier(VARIATION_UPPER, raw.get(VARIATION_UPPER), warnings);
+        if (lower > upper) {
+            warnings.add(new ConfigWarning(VARIATION_LOWER + " and " + VARIATION_UPPER, lower + " and " + upper,
+                    "lower is above upper; using 1.0 for both"));
+            lower = 1.0D;
+            upper = 1.0D;
+        }
+        BalanceSettings settings = new BalanceSettings(mobHealth, lower, upper,
                 EntryParser.parse(ENTITY_RULES, lines(lists, ENTITY_RULES), true, warnings),
                 EntryParser.parse(HEALTH_BLOCKLIST, lines(lists, HEALTH_BLOCKLIST), false, warnings),
                 EntryParser.parse(VARIATION_BLOCKLIST, lines(lists, VARIATION_BLOCKLIST), false, warnings),

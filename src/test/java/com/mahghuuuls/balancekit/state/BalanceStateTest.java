@@ -48,6 +48,28 @@ class BalanceStateTest {
     }
 
     @Test
+    void rollIsSavedAndReadBack() {
+        BalanceState state = new BalanceState();
+        state.markBalanced();
+        state.setRoll(0.1D);
+        NBTTagCompound tag = state.write(1.0F);
+        assertEquals(6, tag.getTagId("roll"), "a double tag");
+        assertEquals(0.1D, tag.getDouble("roll"));
+        BalanceState loaded = new BalanceState();
+        loaded.read(tag);
+        assertEquals(0.1D, loaded.roll());
+    }
+
+    @Test
+    void noRollIsWrittenWhenThereIsNone() {
+        BalanceState state = new BalanceState();
+        assertFalse(state.write(1.0F).hasKey("roll"));
+        BalanceState loaded = new BalanceState();
+        loaded.read(new NBTTagCompound());
+        assertTrue(Double.isNaN(loaded.roll()));
+    }
+
+    @Test
     void noFractionIsWrittenWhenThereIsNone() {
         BalanceState state = new BalanceState();
         assertFalse(state.write(BalanceState.NO_FRACTION).hasKey("healthFraction"));

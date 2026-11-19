@@ -10,6 +10,7 @@ import java.util.List;
 public final class MobProfile {
 
     private final double healthFactor;
+    private final double variationMultiplier;
     private final double dealt;
     private final double received;
     private final double movement;
@@ -19,9 +20,10 @@ public final class MobProfile {
     private final boolean movementBlocked;
     private final List<String> appliedEntries;
 
-    MobProfile(double healthFactor, double dealt, double received, double movement, boolean healthBlocked,
+    MobProfile(double healthFactor, double variationMultiplier, double dealt, double received, double movement, boolean healthBlocked,
                boolean variationBlocked, boolean damageBlocked, boolean movementBlocked, List<String> appliedEntries) {
         this.healthFactor = healthFactor;
+        this.variationMultiplier = variationMultiplier;
         this.dealt = dealt;
         this.received = received;
         this.movement = movement;
@@ -32,9 +34,17 @@ public final class MobProfile {
         this.appliedEntries = Collections.unmodifiableList(appliedEntries);
     }
 
-    /** Global mob health multiplier times every applicable rule's health multiplier; 1 when health-blocklisted. */
+    /**
+     * Global mob health multiplier times every applicable rule's health multiplier times the variation multiplier;
+     * 1 when health-blocklisted.
+     */
     public double healthFactor() {
         return healthFactor;
+    }
+
+    /** The variation multiplier included in {@link #healthFactor()}; 1 when blocklisted or without a roll. */
+    public double variationMultiplier() {
+        return variationMultiplier;
     }
 
     /** Damage-dealt factor; 1 when damage-blocklisted. */

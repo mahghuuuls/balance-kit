@@ -40,6 +40,11 @@ public final class ReportFormatter {
         if (!report.inEffect()) {
             lines.add("Not yet in effect: the config asks for x" + number(report.configuredFactor()) + ".");
         }
+        if (report.variationBlocked()) {
+            lines.add("Variation: skipped (blocklisted); roll " + number(report.roll()));
+        } else {
+            lines.add("Variation: roll " + number(report.roll()) + ", multiplier x" + number(report.variationMultiplier()));
+        }
         if (report.capped()) {
             lines.add("Cap: the max health cap of " + number(report.cap()) + " applies.");
         }
