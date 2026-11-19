@@ -69,6 +69,12 @@ public final class ReportFormatter {
         return lines;
     }
 
+    /** The movement line: the multiplier applied to the movement speed attribute's base, and the speed it gives. */
+    public static String movement(double multiplier, boolean blocklisted, double speed) {
+        String line = "Movement: x" + number(multiplier) + (blocklisted ? " (movement blocklist)" : "");
+        return Double.isNaN(speed) ? line : line + "; speed " + number(speed);
+    }
+
     /** The damage line: the multipliers this entity's hits and injuries get, as the damage handler applies them. */
     public static String damage(double dealt, double received, boolean blocklisted) {
         String line = "Damage: dealt x" + number(dealt) + ", received x" + number(received);

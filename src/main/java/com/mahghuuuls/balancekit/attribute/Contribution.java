@@ -23,6 +23,8 @@ public final class Contribution {
 
     static final UUID MAX_HEALTH_ID = UUID.fromString("0177bbe7-1dd8-4702-bd96-a43fc4abd90a");
     static final String MAX_HEALTH_NAME = "balancekit.maxHealth";
+    static final UUID MOVEMENT_ID = UUID.fromString("5c1e3f2a-7b6d-4e9a-9c0f-2d8b1a4e6f73");
+    static final String MOVEMENT_NAME = "balancekit.movementSpeed";
     static final int OPERATION_ADD = 0;
 
     private static final float SAME_HEALTH = 1.0E-3F;
@@ -62,6 +64,25 @@ public final class Contribution {
      */
     public static boolean restoreMaxHealth(EntityLivingBase entity, double factor, float savedFraction) {
         return apply(entity, factor, savedFraction, Float.NaN, Float.NaN);
+    }
+
+    /**
+     * Sets the movement speed factor; an unchanged share costs nothing. Returns false when the entity has no movement
+     * speed attribute.
+     */
+    public static boolean applyMovement(EntityLivingBase entity, double factor) {
+        IAttributeInstance instance = entity.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
+        if (instance == null) {
+            return false;
+        }
+        setFactor(instance, MOVEMENT_ID, MOVEMENT_NAME, factor);
+        return true;
+    }
+
+    /** The attribute's current value, or NaN when the entity lacks it. */
+    public static double value(EntityLivingBase entity, IAttribute attribute) {
+        IAttributeInstance instance = entity.getEntityAttribute(attribute);
+        return instance == null ? Double.NaN : instance.getAttributeValue();
     }
 
     /** The fraction to save with the entity, matching the health that is saved at the same moment. */

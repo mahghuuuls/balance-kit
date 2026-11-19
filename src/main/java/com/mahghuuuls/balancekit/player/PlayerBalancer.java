@@ -22,8 +22,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Owns the player lifecycle: every path that makes or reloads a player entity ends in {@link #apply}, which sets the
- * player's max health from the configured base (or removes Balance Kit's share when the switch is off).
+ * Owns the player lifecycle: every path that makes or reloads a player entity sets the player's max health from the
+ * configured base (or removes Balance Kit's share when the switch is off) through one private {@code apply}, and the
+ * player's movement share through {@code applyMovement}.
  *
  * <ul>
  *   <li>Login: the game loads health clamped to the max health without Balance Kit's share, so the fraction saved
@@ -35,7 +36,7 @@ import java.util.Set;
  *   gets a fresh share.</li>
  * </ul>
  *
- * <p>Every hook goes through one private {@code apply}. Runs on the logical server thread only. Fake players are not
+ * <p>Runs on the logical server thread only. Fake players are not
  * players for Balance Kit and get nothing.
  */
 public final class PlayerBalancer {
@@ -67,6 +68,7 @@ public final class PlayerBalancer {
         if (state != null) {
             float saved = state.takeSavedHealthFraction();
             apply(event.player, state, factor -> Contribution.restoreMaxHealth(event.player, factor, saved));
+            applyMovement(event.player);
         }
     }
 
@@ -91,6 +93,7 @@ public final class PlayerBalancer {
             apply(event.player, state, factor -> health > 0.0F
                     ? Contribution.applyMaxHealthWithHealth(event.player, factor, health)
                     : Contribution.applyMaxHealthKeepingPercentage(event.player, factor));
+            applyMovement(event.player);
         }
     }
 
@@ -99,6 +102,7 @@ public final class PlayerBalancer {
         BalanceState state = serverState(event.player);
         if (state != null) {
             apply(event.player, state, factor -> Contribution.applyMaxHealthKeepingPercentage(event.player, factor));
+            applyMovement(event.player);
         }
     }
 
@@ -112,6 +116,7 @@ public final class PlayerBalancer {
         if (state == null) {
             return;
         }
+        applyMovement(player);
         if (Contribution.base(player, SharedMonsterAttributes.MAX_HEALTH) != state.lastHealthBase()) {
             apply(player, state, factor -> Contribution.applyMaxHealth(player, factor, state.healthAfterLastApply()));
         } else {
@@ -125,6 +130,22 @@ public final class PlayerBalancer {
         return new PlayerHealthReport(settings.playerBaseHealthEnabled(), settings.playerBaseHealth(),
                 Contribution.base(player, SharedMonsterAttributes.MAX_HEALTH), Contribution.appliedMaxHealthBase(player),
                 player.getMaxHealth(), player.getHealth(), Contribution.cap(player, SharedMonsterAttributes.MAX_HEALTH));
+    }
+
+    /** Sets the player's movement share; separate from the health path, so one cannot stop the other. */
+    private void applyMovement(EntityPlayer player) {
+        try {
+            if (!Contribution.applyMovement(player, settings.playerMovement())) {
+                reportOnce(player, "has no movement speed attribute; left unchanged", null);
+            }
+        } catch (RuntimeException e) {
+            reportOnce(player, "could not get its movement speed; left unchanged", e);
+        }
+    }
+
+    /** The player's movement speed multiplier, as the report shows it. */
+    public double movement() {
+        return settings.playerMovement();
     }
 
     /** The max health factor that makes the base equal the configured value; 1 (no share) while the switch is off. */

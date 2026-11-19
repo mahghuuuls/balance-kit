@@ -87,6 +87,20 @@ class RuleBookTest {
     }
 
     @Test
+    void mobMovementIsTheGlobalTimesEveryMatchingRuleAndTheBlocklistSkipsIt() {
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.MOBS_MOVEMENT, "1.5");
+        Map<String, String[]> lists = new HashMap<>();
+        lists.put(SettingsParser.ENTITY_RULES, new String[] {"minecraft:spider movement=2"});
+        lists.put(SettingsParser.MOVEMENT_BLOCKLIST, new String[] {"minecraft:zombie"});
+        RuleBook book = new RuleBook(SettingsParser.parse(raw, lists).settings());
+        assertEquals(3.0D, book.profile("minecraft:spider", NONE, NO_ROLL).movement(), 1.0E-9);
+        assertEquals(1.5D, book.profile("minecraft:cow", NONE, NO_ROLL).movement(), 1.0E-9);
+        assertEquals(1.0D, book.profile("minecraft:zombie", NONE, NO_ROLL).movement(), 1.0E-9);
+        assertTrue(book.profile("minecraft:zombie", NONE, NO_ROLL).movementBlocked());
+    }
+
+    @Test
     void variationMultipliesTheHealthFactor() {
         MobProfile zombie = varied("2", "1.0", "2.0", new String[0], new String[0])
                 .profile("minecraft:zombie", NONE, 0.5D);

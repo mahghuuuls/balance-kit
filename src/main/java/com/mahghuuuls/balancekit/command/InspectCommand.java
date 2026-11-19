@@ -1,8 +1,10 @@
 package com.mahghuuuls.balancekit.command;
 
+import com.mahghuuuls.balancekit.attribute.Contribution;
 import com.mahghuuuls.balancekit.damage.DamageScaler;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
 import com.mahghuuuls.balancekit.player.PlayerBalancer;
+import com.mahghuuuls.balancekit.rules.MobProfile;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -11,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
@@ -88,12 +91,16 @@ public final class InspectCommand extends CommandBase {
         if (MobBalancer.isMob(target)) {
             EntityLiving mob = (EntityLiving) target;
             sections.addAll(ReportFormatter.health(mobs.report(mob)));
-            sections.add(ReportFormatter.damage(damage.dealtBy(mob), damage.receivedBy(mob),
-                    mobs.profileOf(mob).damageBlocked()));
+            MobProfile profile = mobs.profileOf(mob);
+            sections.add(ReportFormatter.movement(profile.movement(), profile.movementBlocked(),
+                    Contribution.value(mob, SharedMonsterAttributes.MOVEMENT_SPEED)));
+            sections.add(ReportFormatter.damage(damage.dealtBy(mob), damage.receivedBy(mob), profile.damageBlocked()));
             sections.addAll(ReportFormatter.entries(mobs.appliedEntries(mob)));
         } else if (PlayerBalancer.isPlayer(target)) {
             sections.add("Player: yes");
             sections.addAll(ReportFormatter.playerHealth(players.report((EntityPlayer) target)));
+            sections.add(ReportFormatter.movement(players.movement(), false,
+                    Contribution.value((EntityPlayer) target, SharedMonsterAttributes.MOVEMENT_SPEED)));
             sections.add(ReportFormatter.damage(damage.dealtBy(target), damage.receivedBy(target), false));
         } else if (target instanceof EntityPlayer) {
             sections.add("Fake player: Balance Kit gives it no player or mob multipliers.");

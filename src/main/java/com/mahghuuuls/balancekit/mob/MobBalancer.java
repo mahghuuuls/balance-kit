@@ -77,6 +77,7 @@ public final class MobBalancer {
         if (state.isBalanced()) {
             float saved = state.takeSavedHealthFraction();
             run(mob, state, () -> Contribution.restoreMaxHealth(mob, profile(mob, state).healthFactor(), saved));
+            applyMovement(mob, state);
         } else {
             pending.add(mob);
         }
@@ -105,16 +106,30 @@ public final class MobBalancer {
                 return Contribution.applyMaxHealth(mob, profile(mob, state).healthFactor(),
                         state.healthAfterLastApply());
             });
+            applyMovement(mob, state);
             return;
         } else if (!state.isBalanced()) {
             return;
-        } else if (!baseChanged(mob, state)) {
+        }
+        applyMovement(mob, state);
+        if (!baseChanged(mob, state)) {
             // Keeps "health rose since the last check" to one recheck interval (see Contribution.fractionToKeep).
             state.setHealthAfterLastApply(mob.getHealth());
             return;
         }
         run(mob, state, () -> Contribution.applyMaxHealth(mob, profile(mob, state).healthFactor(),
                 state.healthAfterLastApply()));
+    }
+
+    /** Sets the mob's movement share; a base changed by others gets a fresh share, an unchanged one costs nothing. */
+    private void applyMovement(EntityLiving mob, BalanceState state) {
+        try {
+            if (!Contribution.applyMovement(mob, profile(mob, state).movement())) {
+                reportOnce(mob, "has no movement speed attribute; left unchanged", null);
+            }
+        } catch (RuntimeException e) {
+            reportOnce(mob, "could not get its movement speed; left unchanged", e);
+        }
     }
 
     private static boolean baseChanged(EntityLiving mob, BalanceState state) {

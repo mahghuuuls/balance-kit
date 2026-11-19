@@ -26,6 +26,13 @@ class ReportFormatterTest {
     }
 
     @Test
+    void theMovementLineShowsTheMultiplierAndTheBlocklist() {
+        assertEquals("Movement: x1.5; speed 0.345", ReportFormatter.movement(1.5D, false, 0.345D));
+        assertEquals("Movement: x1 (movement blocklist); speed 0.23", ReportFormatter.movement(1.0D, true, 0.23D));
+        assertEquals("Movement: x1.2", ReportFormatter.movement(1.2D, false, Double.NaN));
+    }
+
+    @Test
     void theDamageLineShowsBothMultipliersAndTheBlocklist() {
         assertEquals("Damage: dealt x2, received x1.5", ReportFormatter.damage(2.0D, 1.5D, false));
         assertEquals("Damage: dealt x1, received x1 (its own multipliers skipped: damage blocklist)",

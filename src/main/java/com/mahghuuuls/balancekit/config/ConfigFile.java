@@ -51,6 +51,9 @@ public final class ConfigFile {
                         + " Example: 0.8. Must be above 0 and not above variationUpper."));
         raw.put(SettingsParser.VARIATION_UPPER, number(config, "mobs", "variationUpper", "1.0",
                 "Highest health variation multiplier (not reached unless equal to lower). Example: 1.2. Must be above 0."));
+        raw.put(SettingsParser.MOBS_MOVEMENT, number(config, "mobs", "movementSpeed", "1.0",
+                "Movement speed multiplier for every mob. Example: 1.2. Must be above 0. Mobs that fly, swim or move by"
+                        + " their own rules may not change speed."));
         raw.put(SettingsParser.MOBS_DEALT, number(config, "mobs", "damageDealt", "1.0",
                 "Multiplier for damage every mob deals, before the victim's armor. Example: 1.5. Must be 0 or more."));
         raw.put(SettingsParser.MOBS_RECEIVED, number(config, "mobs", "damageReceived", "1.0",
@@ -64,6 +67,9 @@ public final class ConfigFile {
         raw.put(SettingsParser.PLAYER_BASE_HEALTH, number(config, "player", "baseHealth", "20.0",
                 "Base max health for players while baseHealthEnabled is true. 20.0 is ten hearts. Must be above 0;"
                         + " the game's max health cap still applies."));
+        raw.put(SettingsParser.PLAYER_MOVEMENT, number(config, "player", "movementSpeed", "1.0",
+                "Walking speed multiplier for every player; sprinting and effects still add their share. Example: 1.2."
+                        + " Must be above 0."));
         raw.put(SettingsParser.PLAYER_DEALT, number(config, "player", "damageDealt", "1.0",
                 "Multiplier for damage every player deals, before the victim's armor. Example: 2.0. Must be 0 or more."));
         raw.put(SettingsParser.PLAYER_RECEIVED, number(config, "player", "damageReceived", "1.0",

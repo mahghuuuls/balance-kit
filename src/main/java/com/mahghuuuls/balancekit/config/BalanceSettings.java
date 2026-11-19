@@ -21,6 +21,8 @@ public final class BalanceSettings {
     private final double mobReceived;
     private final double playerDealt;
     private final double playerReceived;
+    private final double mobMovement;
+    private final double playerMovement;
     private final boolean playerBaseHealthEnabled;
     private final double playerBaseHealth;
     private final Set<String> excludedDamageTypes;
@@ -39,6 +41,8 @@ public final class BalanceSettings {
         this.mobReceived = b.mobReceived;
         this.playerDealt = b.playerDealt;
         this.playerReceived = b.playerReceived;
+        this.mobMovement = b.mobMovement;
+        this.playerMovement = b.playerMovement;
         this.playerBaseHealthEnabled = b.playerBaseHealthEnabled;
         this.playerBaseHealth = b.playerBaseHealth;
         this.excludedDamageTypes = Collections.unmodifiableSet(new LinkedHashSet<>(b.excludedDamageTypes));
@@ -82,6 +86,16 @@ public final class BalanceSettings {
     /** Damage-received multiplier for every player; 0 or more. */
     public double playerReceived() {
         return playerReceived;
+    }
+
+    /** Global movement speed multiplier for every mob; above 0. */
+    public double mobMovement() {
+        return mobMovement;
+    }
+
+    /** Movement speed multiplier for every player; above 0. */
+    public double playerMovement() {
+        return playerMovement;
     }
 
     /** Whether every player's max health is computed from {@link #playerBaseHealth()} as its base. */
@@ -133,6 +147,8 @@ public final class BalanceSettings {
         double mobReceived = 1.0D;
         double playerDealt = 1.0D;
         double playerReceived = 1.0D;
+        double mobMovement = 1.0D;
+        double playerMovement = 1.0D;
         boolean playerBaseHealthEnabled;
         double playerBaseHealth = 20.0D;
         Set<String> excludedDamageTypes = Collections.emptySet();

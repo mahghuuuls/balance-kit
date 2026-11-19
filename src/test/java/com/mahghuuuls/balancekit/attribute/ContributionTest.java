@@ -65,6 +65,18 @@ class ContributionTest {
     }
 
     @Test
+    void movementFactorThenASpeedEffectMultipliesTheTotal() {
+        AttributeMap map = new AttributeMap();
+        IAttributeInstance instance = map.registerAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
+        instance.setBaseValue(0.1D);
+        assertTrue(Contribution.setFactor(instance, Contribution.MOVEMENT_ID, Contribution.MOVEMENT_NAME, 1.2D));
+        assertEquals(0.12D, instance.getAttributeValue(), 1.0E-9);
+        instance.applyModifier(new AttributeModifier(OTHER_MOD, "speed II", 0.4D, 2));
+        assertEquals(0.168D, instance.getAttributeValue(), 1.0E-9);
+        assertFalse(Contribution.MOVEMENT_ID.equals(Contribution.MAX_HEALTH_ID), "its own modifier id");
+    }
+
+    @Test
     void otherModsMultiplyBaseModifierSeesTheAdjustedBase() {
         IAttributeInstance instance = maxHealth(20.0D);
         instance.applyModifier(new AttributeModifier(OTHER_MOD, "other", 0.5D, 1));

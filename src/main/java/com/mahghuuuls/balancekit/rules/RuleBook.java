@@ -34,14 +34,14 @@ public final class RuleBook {
     private final VariationRange variation;
     private final double globalDealt;
     private final double globalReceived;
-    // The global mob movement multiplier arrives with its setting; until then it is neutral.
-    private final double globalMovement = 1.0D;
+    private final double globalMovement;
     private final Map<String, List<Entry>> byEntity = new HashMap<>();
 
     public RuleBook(BalanceSettings settings) {
         this.globalHealth = settings.mobHealth();
         this.globalDealt = settings.mobDealt();
         this.globalReceived = settings.mobReceived();
+        this.globalMovement = settings.mobMovement();
         this.variation = new VariationRange(settings.variationLower(), settings.variationUpper());
         add(settings.entityRules(), Kind.RULE);
         add(settings.healthBlocklist(), Kind.HEALTH_BLOCK);
