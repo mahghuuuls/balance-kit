@@ -2,6 +2,7 @@ package com.mahghuuuls.balancekit;
 
 import com.mahghuuuls.balancekit.command.InspectCommand;
 import com.mahghuuuls.balancekit.breathing.BreathingAdjuster;
+import com.mahghuuuls.balancekit.breathing.BreathingMessage;
 import com.mahghuuuls.balancekit.config.BalanceSettings;
 import com.mahghuuuls.balancekit.config.ConfigFile;
 import com.mahghuuuls.balancekit.damage.DamageScaler;
@@ -17,6 +18,9 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,6 +46,11 @@ public class BalanceKitMod {
     public void preInit(FMLPreInitializationEvent event) {
         settings = ConfigFile.load(new File(event.getModConfigurationDirectory(), Tags.MOD_ID + ".cfg"), LOGGER);
         BalanceStates.register();
+        // One channel, one message: the server's breathing multiplier to clients that have Balance Kit.
+        SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel(Tags.MOD_ID);
+        breathing = new BreathingAdjuster(settings, channel, Tags.MOD_ID);
+        channel.registerMessage(new BreathingMessage.Handler(breathing::receiveServerMultiplier), BreathingMessage.class, 0,
+                Side.CLIENT);
     }
 
     @Mod.EventHandler
@@ -51,7 +60,6 @@ public class BalanceKitMod {
         MinecraftForge.EVENT_BUS.register(mobs);
         players = new PlayerBalancer(settings);
         MinecraftForge.EVENT_BUS.register(players);
-        breathing = new BreathingAdjuster(settings);
         MinecraftForge.EVENT_BUS.register(breathing);
         damage = new DamageScaler(settings, mobs);
         MinecraftForge.EVENT_BUS.register(damage);

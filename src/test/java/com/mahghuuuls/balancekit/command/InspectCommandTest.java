@@ -45,7 +45,7 @@ class InspectCommandTest {
 
     private static final MobBalancer MOBS = new MobBalancer(new RuleBook(BalanceSettings.NEUTRAL));
     private final InspectCommand command = new InspectCommand(MOBS, new PlayerBalancer(BalanceSettings.NEUTRAL),
-            new DamageScaler(BalanceSettings.NEUTRAL, MOBS), new BreathingAdjuster(BalanceSettings.NEUTRAL));
+            new DamageScaler(BalanceSettings.NEUTRAL, MOBS), new BreathingAdjuster(BalanceSettings.NEUTRAL, null, "balancekit"));
 
     @Test
     void operatorsMayUseItAndOthersMayNot() {
