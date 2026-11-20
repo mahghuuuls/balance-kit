@@ -29,6 +29,15 @@ class ContributionTest {
     }
 
     @Test
+    void aSavedFractionWinsOverTheFallback() {
+        assertEquals(0.5F, Contribution.preferredFraction(0.5F, 0.8F), 0.0F);
+        assertEquals(0.8F, Contribution.preferredFraction(Contribution.NO_FRACTION, 0.8F), 0.0F);
+        assertEquals(0.8F, Contribution.preferredFraction(0.0F, 0.8F), 0.0F);
+        assertEquals(Contribution.NO_FRACTION, Contribution.preferredFraction(Contribution.NO_FRACTION,
+                Contribution.NO_FRACTION), 0.0F);
+    }
+
+    @Test
     void factorActsLikeAChangedBase() {
         IAttributeInstance instance = maxHealth(20.0D);
         assertTrue(apply(instance, 2.0D));

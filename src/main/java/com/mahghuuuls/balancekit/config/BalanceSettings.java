@@ -29,6 +29,7 @@ public final class BalanceSettings {
     private final double playerBaseHealth;
     private final Set<String> excludedDamageTypes;
     private final boolean logDamageTypes;
+    private final boolean removeScalingHealthModifiers;
     private final List<EntrySpec> entityRules;
     private final List<EntrySpec> healthBlocklist;
     private final List<EntrySpec> variationBlocklist;
@@ -51,6 +52,7 @@ public final class BalanceSettings {
         this.playerBaseHealth = b.playerBaseHealth;
         this.excludedDamageTypes = Collections.unmodifiableSet(new LinkedHashSet<>(b.excludedDamageTypes));
         this.logDamageTypes = b.logDamageTypes;
+        this.removeScalingHealthModifiers = b.removeScalingHealthModifiers;
         this.entityRules = Collections.unmodifiableList(new ArrayList<>(b.entityRules));
         this.healthBlocklist = Collections.unmodifiableList(new ArrayList<>(b.healthBlocklist));
         this.variationBlocklist = Collections.unmodifiableList(new ArrayList<>(b.variationBlocklist));
@@ -132,6 +134,11 @@ public final class BalanceSettings {
         return logDamageTypes;
     }
 
+    /** Whether Scaling Health's leftover modifiers are removed (only while Scaling Health is not installed). */
+    public boolean removeScalingHealthModifiers() {
+        return removeScalingHealthModifiers;
+    }
+
     public List<EntrySpec> entityRules() {
         return entityRules;
     }
@@ -169,6 +176,7 @@ public final class BalanceSettings {
         double playerBaseHealth = 20.0D;
         Set<String> excludedDamageTypes = Collections.emptySet();
         boolean logDamageTypes;
+        boolean removeScalingHealthModifiers;
         List<EntrySpec> entityRules = Collections.emptyList();
         List<EntrySpec> healthBlocklist = Collections.emptyList();
         List<EntrySpec> variationBlocklist = Collections.emptyList();

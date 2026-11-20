@@ -87,6 +87,13 @@ public final class ConfigFile {
                         + " victim, and the multipliers or the reason none applied. The log grows fast; use it to"
                         + " find damage type names, then turn it off. true or false."));
 
+        config.getCategory("compat").setComment("Cleanup after removing another mod.");
+        raw.put(SettingsParser.REMOVE_SCALING_HEALTH, switchText(config, "compat", "removeScalingHealthModifiers",
+                "true removes the two modifiers Scaling Health 1.3.42 leaves in saved players and mobs after it is"
+                        + " removed from the pack (its extra max health and extra attack damage): from players at login,"
+                        + " from mobs when Balance Kit next balances them. Health percentage is kept; every other"
+                        + " modifier stays. Does nothing while Scaling Health is installed. true or false."));
+
         config.getCategory("rules").setComment("Entity rules, one per line: <entity id> [<NBT condition>] [health=<n>] [dealt=<n>] [received=<n>] [movement=<n>]."
                 + " Example: minecraft:zombie {IsBaby:1b} health=1.5. health and movement must be above 0; dealt and"
                 + " received must be 0 or more. Every matching rule multiplies with the global value."

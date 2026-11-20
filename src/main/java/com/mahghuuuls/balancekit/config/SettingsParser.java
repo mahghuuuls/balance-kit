@@ -28,6 +28,7 @@ public final class SettingsParser {
     public static final String PLAYER_BASE_HEALTH = "player.baseHealth";
     public static final String EXCLUDED_DAMAGE_TYPES = "damage.excludedDamageTypes";
     public static final String LOG_DAMAGE_TYPES = "diagnostics.logDamageTypes";
+    public static final String REMOVE_SCALING_HEALTH = "compat.removeScalingHealthModifiers";
     public static final String ENTITY_RULES = "rules.entityRules";
     public static final String HEALTH_BLOCKLIST = "blocklists.health";
     public static final String VARIATION_BLOCKLIST = "blocklists.variation";
@@ -69,6 +70,7 @@ public final class SettingsParser {
         b.playerBaseHealth = positiveValue(PLAYER_BASE_HEALTH, raw.get(PLAYER_BASE_HEALTH), 20.0D, warnings);
         b.excludedDamageTypes = names(lines(lists, EXCLUDED_DAMAGE_TYPES));
         b.logDamageTypes = switchSetting(LOG_DAMAGE_TYPES, raw.get(LOG_DAMAGE_TYPES), warnings);
+        b.removeScalingHealthModifiers = switchSetting(REMOVE_SCALING_HEALTH, raw.get(REMOVE_SCALING_HEALTH), warnings);
         b.entityRules = EntryParser.parse(ENTITY_RULES, lines(lists, ENTITY_RULES), true, warnings);
         b.healthBlocklist = EntryParser.parse(HEALTH_BLOCKLIST, lines(lists, HEALTH_BLOCKLIST), false, warnings);
         b.variationBlocklist = EntryParser.parse(VARIATION_BLOCKLIST, lines(lists, VARIATION_BLOCKLIST), false, warnings);

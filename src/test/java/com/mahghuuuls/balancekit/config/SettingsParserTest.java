@@ -125,6 +125,20 @@ class SettingsParserTest {
     }
 
     @Test
+    void theScalingHealthCleanupIsOffByDefaultAndReadsTrueOrFalse() {
+        assertEquals(false, SettingsParser.parse(Collections.<String, String>emptyMap()).settings()
+                .removeScalingHealthModifiers());
+        Map<String, String> raw = new HashMap<>();
+        raw.put(SettingsParser.REMOVE_SCALING_HEALTH, "true");
+        assertEquals(true, SettingsParser.parse(raw).settings().removeScalingHealthModifiers());
+        raw.put(SettingsParser.REMOVE_SCALING_HEALTH, "1");
+        SettingsParser.Result result = SettingsParser.parse(raw);
+        assertEquals(false, result.settings().removeScalingHealthModifiers());
+        assertEquals(1, result.warnings().size());
+        assertEquals("compat.removeScalingHealthModifiers", result.warnings().get(0).location());
+    }
+
+    @Test
     void playerBaseHealthDefaultsOffAt20AndRejectsInvalidValues() {
         BalanceSettings neutral = SettingsParser.parse(Collections.<String, String>emptyMap()).settings();
         assertEquals(false, neutral.playerBaseHealthEnabled());

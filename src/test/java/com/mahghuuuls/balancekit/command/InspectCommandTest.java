@@ -1,5 +1,6 @@
 package com.mahghuuuls.balancekit.command;
 
+import com.mahghuuuls.balancekit.attribute.LegacyCleanup;
 import com.mahghuuuls.balancekit.breathing.BreathingAdjuster;
 import com.mahghuuuls.balancekit.config.BalanceSettings;
 import com.mahghuuuls.balancekit.damage.DamageScaler;
@@ -43,8 +44,8 @@ class InspectCommandTest {
         };
     }
 
-    private static final MobBalancer MOBS = new MobBalancer(new RuleBook(BalanceSettings.NEUTRAL));
-    private final InspectCommand command = new InspectCommand(MOBS, new PlayerBalancer(BalanceSettings.NEUTRAL),
+    private static final MobBalancer MOBS = new MobBalancer(new RuleBook(BalanceSettings.NEUTRAL), LegacyCleanup.OFF);
+    private final InspectCommand command = new InspectCommand(MOBS, new PlayerBalancer(BalanceSettings.NEUTRAL, LegacyCleanup.OFF),
             new DamageScaler(BalanceSettings.NEUTRAL, MOBS), new BreathingAdjuster(BalanceSettings.NEUTRAL, null, "balancekit"));
 
     @Test

@@ -1,5 +1,6 @@
 package com.mahghuuuls.balancekit.damage;
 
+import com.mahghuuuls.balancekit.attribute.LegacyCleanup;
 import com.mahghuuuls.balancekit.config.ConfigWarning;
 import com.mahghuuuls.balancekit.config.SettingsParser;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
@@ -34,7 +35,7 @@ class DamageScalerTest {
         for (ConfigWarning warning : result.warnings()) {
             throw new AssertionError(warning.toString());
         }
-        return new DamageScaler(result.settings(), new MobBalancer(new RuleBook(result.settings())));
+        return new DamageScaler(result.settings(), new MobBalancer(new RuleBook(result.settings()), LegacyCleanup.OFF));
     }
 
     private static Map<String, String> players(String dealt, String received) {
@@ -81,10 +82,10 @@ class DamageScalerTest {
         Map<String, String[]> lists = new HashMap<>();
         lists.put(SettingsParser.ENTITY_RULES, new String[] {"minecraft:zombie dealt=1.5"});
         SettingsParser.Result result = SettingsParser.parse(new HashMap<>(), lists);
-        assertTrue(new DamageScaler(result.settings(), new MobBalancer(new RuleBook(result.settings()))).active());
+        assertTrue(new DamageScaler(result.settings(), new MobBalancer(new RuleBook(result.settings()), LegacyCleanup.OFF)).active());
         lists.put(SettingsParser.ENTITY_RULES, new String[] {"minecraft:zombie health=2 dealt=1"});
         result = SettingsParser.parse(new HashMap<>(), lists);
-        assertFalse(new DamageScaler(result.settings(), new MobBalancer(new RuleBook(result.settings()))).active());
+        assertFalse(new DamageScaler(result.settings(), new MobBalancer(new RuleBook(result.settings()), LegacyCleanup.OFF)).active());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.mahghuuuls.balancekit;
 
+import com.mahghuuuls.balancekit.attribute.LegacyCleanup;
 import com.mahghuuuls.balancekit.command.InspectCommand;
 import com.mahghuuuls.balancekit.breathing.BreathingAdjuster;
 import com.mahghuuuls.balancekit.breathing.BreathingMessage;
@@ -13,6 +14,7 @@ import com.mahghuuuls.balancekit.state.BalanceStates;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
@@ -34,6 +36,7 @@ import java.io.File;
 public class BalanceKitMod {
 
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
+    private static final String SCALING_HEALTH = "scalinghealth";
 
     private BalanceSettings settings = BalanceSettings.NEUTRAL;
     private RuleBook rules;
@@ -56,9 +59,11 @@ public class BalanceKitMod {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         rules = new RuleBook(settings);
-        mobs = new MobBalancer(rules);
+        LegacyCleanup cleanup = LegacyCleanup.create(settings.removeScalingHealthModifiers(),
+                Loader.isModLoaded(SCALING_HEALTH));
+        mobs = new MobBalancer(rules, cleanup);
         MinecraftForge.EVENT_BUS.register(mobs);
-        players = new PlayerBalancer(settings);
+        players = new PlayerBalancer(settings, cleanup);
         MinecraftForge.EVENT_BUS.register(players);
         MinecraftForge.EVENT_BUS.register(breathing);
         damage = new DamageScaler(settings, mobs);

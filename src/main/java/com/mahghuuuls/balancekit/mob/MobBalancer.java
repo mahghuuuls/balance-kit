@@ -1,6 +1,7 @@
 package com.mahghuuuls.balancekit.mob;
 
 import com.mahghuuuls.balancekit.attribute.Contribution;
+import com.mahghuuuls.balancekit.attribute.LegacyCleanup;
 import com.mahghuuuls.balancekit.rules.MobProfile;
 import com.mahghuuuls.balancekit.rules.RuleBook;
 import com.mahghuuuls.balancekit.state.BalanceState;
@@ -45,12 +46,14 @@ public final class MobBalancer {
     private static final Logger LOG = LogManager.getLogger("Balance Kit");
 
     private final RuleBook rules;
+    private final LegacyCleanup cleanup;
     /** Mobs waiting for their first balance. Weak, so an unloaded mob is dropped; entities compare by entity id. */
     private final Set<EntityLiving> pending = Collections.newSetFromMap(new WeakHashMap<EntityLiving, Boolean>());
     private final Set<String> reportedFailures = new HashSet<>();
 
-    public MobBalancer(RuleBook rules) {
+    public MobBalancer(RuleBook rules, LegacyCleanup cleanup) {
         this.rules = rules;
+        this.cleanup = cleanup;
     }
 
     /** A mob is any non-player creature. Armor stands and other non-creature living entities are not. */
@@ -76,7 +79,8 @@ public final class MobBalancer {
         EntityLiving mob = (EntityLiving) entity;
         if (state.isBalanced()) {
             float saved = state.takeSavedHealthFraction();
-            run(mob, state, () -> Contribution.restoreMaxHealth(mob, profile(mob, state).healthFactor(), saved));
+            run(mob, state, () -> Contribution.restoreMaxHealthAfterCleanup(mob, profile(mob, state).healthFactor(),
+                    saved, cleanup));
             applyMovement(mob, state);
         } else {
             pending.add(mob);
@@ -103,8 +107,8 @@ public final class MobBalancer {
                 state.setMatches(rules.evaluateFirst(entityId(mob), () -> mob.writeToNBT(new NBTTagCompound())));
                 state.setRoll(mob.getRNG().nextDouble());
                 state.markBalanced();
-                return Contribution.applyMaxHealth(mob, profile(mob, state).healthFactor(),
-                        state.healthAfterLastApply());
+                return Contribution.applyMaxHealthAfterCleanup(mob, profile(mob, state).healthFactor(),
+                        state.healthAfterLastApply(), cleanup);
             });
             applyMovement(mob, state);
             return;

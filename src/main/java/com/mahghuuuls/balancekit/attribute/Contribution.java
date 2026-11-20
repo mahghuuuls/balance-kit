@@ -46,6 +46,30 @@ public final class Contribution {
     }
 
     /**
+     * The first max health adjustment of an entity that has no saved fraction (a new mob's first balance): runs
+     * {@code cleanup} first and, when it lowered max health, keeps the fraction the entity had before; otherwise as
+     * {@link #applyMaxHealth(EntityLivingBase, double, float)}. Health is set in the same call, so it is never left
+     * above the lowered max health.
+     */
+    public static boolean applyMaxHealthAfterCleanup(EntityLivingBase entity, double factor, float healthAfterLastApply,
+                                                     LegacyCleanup cleanup) {
+        float beforeCleanup = cleanup.remove(entity);
+        return apply(entity, factor, beforeCleanup, healthAfterLastApply, Float.NaN);
+    }
+
+    /**
+     * Sets the max health factor right after the entity loaded, with {@code cleanup} run first in the same call. The
+     * game clamps loaded health to the max health without Balance Kit's modifier, so the fraction saved with the
+     * entity is restored instead; without a saved fraction, the fraction from before the cleanup is kept, and
+     * without either, the plain percentage.
+     */
+    public static boolean restoreMaxHealthAfterCleanup(EntityLivingBase entity, double factor, float savedFraction,
+                                                       LegacyCleanup cleanup) {
+        float beforeCleanup = cleanup.remove(entity);
+        return apply(entity, factor, preferredFraction(savedFraction, beforeCleanup), Float.NaN, Float.NaN);
+    }
+
+    /**
      * Sets the max health factor, then gives the entity back {@code health} (at most its new max health). For an
      * entity the game made with a health value that was clamped before Balance Kit's share existed, such as a player
      * after the End exit.
@@ -61,14 +85,6 @@ public final class Contribution {
      */
     public static boolean applyMaxHealthKeepingPercentage(EntityLivingBase entity, double factor) {
         return apply(entity, factor, NO_FRACTION, Float.NaN, Float.NaN);
-    }
-
-    /**
-     * Sets the max health factor right after the entity loaded. The game clamps loaded health to the max health
-     * without Balance Kit's modifier, so the fraction saved with the entity is restored instead.
-     */
-    public static boolean restoreMaxHealth(EntityLivingBase entity, double factor, float savedFraction) {
-        return apply(entity, factor, savedFraction, Float.NaN, Float.NaN);
     }
 
     /**
@@ -206,6 +222,11 @@ public final class Contribution {
     static float targetHealth(float exactHealth, float fraction, float max, float health) {
         float target = exactHealth > 0.0F ? Math.min(exactHealth, max) : fraction * max;
         return target <= 0.0F || target > max ? Math.min(health, max) : target;
+    }
+
+    /** {@code saved} when it is a usable fraction, otherwise {@code fallback} (which may be unusable too). */
+    static float preferredFraction(float saved, float fallback) {
+        return isUsableFraction(saved) ? saved : fallback;
     }
 
     static boolean isUsableFraction(float fraction) {

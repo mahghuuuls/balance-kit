@@ -1,6 +1,7 @@
 package com.mahghuuuls.balancekit.player;
 
 import com.mahghuuuls.balancekit.attribute.Contribution;
+import com.mahghuuuls.balancekit.attribute.LegacyCleanup;
 import com.mahghuuuls.balancekit.config.BalanceSettings;
 import com.mahghuuuls.balancekit.state.BalanceState;
 import com.mahghuuuls.balancekit.state.BalanceStates;
@@ -46,10 +47,12 @@ public final class PlayerBalancer {
     private static final Logger LOG = LogManager.getLogger("Balance Kit");
 
     private final BalanceSettings settings;
+    private final LegacyCleanup cleanup;
     private final Set<String> reportedFailures = new HashSet<>();
 
-    public PlayerBalancer(BalanceSettings settings) {
+    public PlayerBalancer(BalanceSettings settings, LegacyCleanup cleanup) {
         this.settings = settings;
+        this.cleanup = cleanup;
     }
 
     /** A real player: fake players (automation stand-ins) are neither players nor mobs for Balance Kit. */
@@ -67,7 +70,8 @@ public final class PlayerBalancer {
         BalanceState state = serverState(event.player);
         if (state != null) {
             float saved = state.takeSavedHealthFraction();
-            apply(event.player, state, factor -> Contribution.restoreMaxHealth(event.player, factor, saved));
+            apply(event.player, state,
+                    factor -> Contribution.restoreMaxHealthAfterCleanup(event.player, factor, saved, cleanup));
             applyMovementAndAttackSpeed(event.player);
         }
     }
