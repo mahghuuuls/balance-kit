@@ -1,6 +1,7 @@
 package com.mahghuuuls.balancekit.command;
 
 import com.mahghuuuls.balancekit.attribute.Contribution;
+import com.mahghuuuls.balancekit.breathing.BreathingAdjuster;
 import com.mahghuuuls.balancekit.damage.DamageScaler;
 import com.mahghuuuls.balancekit.mob.MobBalancer;
 import com.mahghuuuls.balancekit.player.PlayerBalancer;
@@ -40,11 +41,13 @@ public final class InspectCommand extends CommandBase {
     private final MobBalancer mobs;
     private final PlayerBalancer players;
     private final DamageScaler damage;
+    private final BreathingAdjuster breathing;
 
-    public InspectCommand(MobBalancer mobs, PlayerBalancer players, DamageScaler damage) {
+    public InspectCommand(MobBalancer mobs, PlayerBalancer players, DamageScaler damage, BreathingAdjuster breathing) {
         this.mobs = mobs;
         this.players = players;
         this.damage = damage;
+        this.breathing = breathing;
     }
 
     @Override
@@ -101,9 +104,10 @@ public final class InspectCommand extends CommandBase {
             sections.addAll(ReportFormatter.playerHealth(players.report((EntityPlayer) target)));
             sections.add(ReportFormatter.movement(players.movement(), false,
                     Contribution.value((EntityPlayer) target, SharedMonsterAttributes.MOVEMENT_SPEED)));
-            sections.add(ReportFormatter.attackSpeed(players.attackSpeed(),
-                    Contribution.value((EntityPlayer) target, SharedMonsterAttributes.ATTACK_SPEED),
-                    ((EntityPlayer) target).getCooldownPeriod()));
+            double attackSpeed = Contribution.value((EntityPlayer) target, SharedMonsterAttributes.ATTACK_SPEED);
+            sections.add(ReportFormatter.attackSpeed(players.attackSpeed(), attackSpeed,
+                    Double.isNaN(attackSpeed) ? Double.NaN : ((EntityPlayer) target).getCooldownPeriod()));
+            sections.add(ReportFormatter.breathing(breathing.multiplier(), target.getAir()));
             sections.add(ReportFormatter.damage(damage.dealtBy(target), damage.receivedBy(target), false));
         } else if (target instanceof EntityPlayer) {
             sections.add("Fake player: Balance Kit gives it no player or mob multipliers.");

@@ -151,8 +151,9 @@ class SettingsParserTest {
         assertEquals(1.0D, neutral.mobMovement());
         assertEquals(1.0D, neutral.playerMovement());
         assertEquals(1.0D, neutral.playerAttackSpeed());
+        assertEquals(1.0D, neutral.playerBreathing());
         for (String key : new String[] {SettingsParser.MOBS_MOVEMENT, SettingsParser.PLAYER_MOVEMENT,
-                SettingsParser.PLAYER_ATTACK_SPEED}) {
+                SettingsParser.PLAYER_ATTACK_SPEED, SettingsParser.PLAYER_BREATHING}) {
             Map<String, String> raw = new HashMap<>();
             raw.put(key, "1.5");
             assertTrue(SettingsParser.parse(raw).warnings().isEmpty(), key);
@@ -167,8 +168,10 @@ class SettingsParserTest {
         raw.put(SettingsParser.MOBS_MOVEMENT, "1.5");
         raw.put(SettingsParser.PLAYER_MOVEMENT, "1.2");
         raw.put(SettingsParser.PLAYER_ATTACK_SPEED, "2");
+        raw.put(SettingsParser.PLAYER_BREATHING, "1.5");
         BalanceSettings settings = SettingsParser.parse(raw).settings();
         assertEquals(2.0D, settings.playerAttackSpeed());
+        assertEquals(1.5D, settings.playerBreathing());
         assertEquals(1.5D, settings.mobMovement());
         assertEquals(1.2D, settings.playerMovement());
     }

@@ -73,6 +73,9 @@ public final class ConfigFile {
         raw.put(SettingsParser.PLAYER_ATTACK_SPEED, number(config, "player", "attackSpeed", "1.0",
                 "Multiplier for every player's final attack speed, after the weapon. 2.0 halves the time a swing takes"
                         + " to recharge. The bow is not affected. Must be above 0."));
+        raw.put(SettingsParser.PLAYER_BREATHING, number(config, "player", "breathingDuration", "1.0",
+                "How many times as long a player's air lasts underwater. 2.0 doubles it; Respiration keeps its benefit on"
+                        + " top. Water Breathing, air recovery and drowning damage are unchanged. Must be above 0."));
         raw.put(SettingsParser.PLAYER_DEALT, number(config, "player", "damageDealt", "1.0",
                 "Multiplier for damage every player deals, before the victim's armor. Example: 2.0. Must be 0 or more."));
         raw.put(SettingsParser.PLAYER_RECEIVED, number(config, "player", "damageReceived", "1.0",

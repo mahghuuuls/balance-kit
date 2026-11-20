@@ -39,6 +39,11 @@ class ReportFormatterTest {
     }
 
     @Test
+    void theBreathingLineShowsTheMultiplierAndAir() {
+        assertEquals("Breathing: x2; air 150", ReportFormatter.breathing(2.0D, 150));
+    }
+
+    @Test
     void theDamageLineShowsBothMultipliersAndTheBlocklist() {
         assertEquals("Damage: dealt x2, received x1.5", ReportFormatter.damage(2.0D, 1.5D, false));
         assertEquals("Damage: dealt x1, received x1 (its own multipliers skipped: damage blocklist)",

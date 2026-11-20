@@ -1,6 +1,7 @@
 package com.mahghuuuls.balancekit;
 
 import com.mahghuuuls.balancekit.command.InspectCommand;
+import com.mahghuuuls.balancekit.breathing.BreathingAdjuster;
 import com.mahghuuuls.balancekit.config.BalanceSettings;
 import com.mahghuuuls.balancekit.config.ConfigFile;
 import com.mahghuuuls.balancekit.damage.DamageScaler;
@@ -35,6 +36,7 @@ public class BalanceKitMod {
     private MobBalancer mobs;
     private DamageScaler damage;
     private PlayerBalancer players;
+    private BreathingAdjuster breathing;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -49,6 +51,8 @@ public class BalanceKitMod {
         MinecraftForge.EVENT_BUS.register(mobs);
         players = new PlayerBalancer(settings);
         MinecraftForge.EVENT_BUS.register(players);
+        breathing = new BreathingAdjuster(settings);
+        MinecraftForge.EVENT_BUS.register(breathing);
         damage = new DamageScaler(settings, mobs);
         MinecraftForge.EVENT_BUS.register(damage);
     }
@@ -65,6 +69,6 @@ public class BalanceKitMod {
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new InspectCommand(mobs, players, damage));
+        event.registerServerCommand(new InspectCommand(mobs, players, damage, breathing));
     }
 }

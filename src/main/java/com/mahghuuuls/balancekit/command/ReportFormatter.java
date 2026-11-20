@@ -87,6 +87,11 @@ public final class ReportFormatter {
         return Double.isNaN(rechargeTicks) ? line : line + "; recharge " + number(rechargeTicks) + " ticks";
     }
 
+    /** The breathing line: the breathing duration multiplier and the player's air right now (300 is full). */
+    public static String breathing(double multiplier, int air) {
+        return "Breathing: x" + number(multiplier) + "; air " + air;
+    }
+
     /** The damage line: the multipliers this entity's hits and injuries get, as the damage handler applies them. */
     public static String damage(double dealt, double received, boolean blocklisted) {
         String line = "Damage: dealt x" + number(dealt) + ", received x" + number(received);
